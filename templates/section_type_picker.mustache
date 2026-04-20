@@ -1,0 +1,49 @@
+{{!
+    @template   local_byblos/section_type_picker
+    @version    2026041600
+    @copyright  2026 South African Theological Seminary
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Section type picker modal. Shows 12 section types with icons and labels.
+    Displayed when the user clicks "Add Section" between sections.
+}}
+
+<div class="modal fade" id="byblos-section-type-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-plus-circle"></i> {{#str}} choosesectiontype, local_byblos {{/str}}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="byblos-section-type-grid">
+                    {{#section_types}}
+                    <div class="col-md-4 col-sm-6 mb-3">
+                        <div class="byblos-type-pick-card card h-100" data-type="{{type}}" style="cursor:pointer !important;">
+                            <div class="card-body text-center">
+                                <i class="fa {{icon}} fa-2x mb-2" style="color:#0d6efd !important;"></i>
+                                <h6 class="mb-1">{{name}}</h6>
+                                <p class="text-muted small mb-0">{{description}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {{/section_types}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.byblos-type-pick-card {
+    border: 2px solid transparent !important;
+    border-radius: 8px !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+.byblos-type-pick-card:hover {
+    border-color: #80bdff !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+</style>

@@ -1,0 +1,33 @@
+# OS noise
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Editor swap
+*~
+*.swp
+
+# Node / AMD toolchain (source is in amd/src; built output in amd/build is committed per Moodle convention)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# PHP
+vendor/
+composer.phar
+
+# Moodle local dev
+moodledata/
+config.php.backup
+
+# Local-only deploy helper (keeps per-developer paths out of the repo)
+deploy.sh
+
+# moodle-plugin-ci artefacts
+moodle/
+ci/

@@ -1,0 +1,174 @@
+{{!
+    View and manage a single collection with ordered page cards.
+
+    Context variables:
+    - collection (object) id, title, description, timecreated.
+    - group (object) { is_group, group_name } — populated when the collection is tied to a Moodle group.
+    - iscreator (bool) Creator of the collection (can rename/delete + all contributor actions).
+    - cancontribute (bool) May add own pages, reorder, set home (creator + group members).
+    - isowner (bool) Legacy alias for iscreator — kept for chrome blocks that remain creator-only.
+    - has_pages (bool) Whether the collection has any pages.
+    - pages (array) Ordered page objects with id, title, status, viewurl, is_home, can_up, can_down,
+        can_remove, owner_name, is_mine.
+    - has_available (bool) Whether the current user has pages available to add.
+    - availablepages (array) Pages the current user can contribute.
+    - dashurl, deleteurl, shareurl, previewurl, actionurl, sesskey.
+
+    @package    local_byblos
+    @copyright  2026 South African Theological Seminary
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="byblos-collection-view">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{{dashurl}}}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa fa-arrow-left"></i> {{#str}}dashboard, local_byblos{{/str}}
+        </a>
+        <div class="btn-group byblos-toolbar">
+            {{#has_preview}}
+            <a href="{{{previewurl}}}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                <i class="fa fa-eye"></i> {{#str}}previewthiscollection, local_byblos{{/str}}
+            </a>
+            {{/has_preview}}
+            {{#iscreator}}
+            <a href="{{{shareurl}}}" class="btn btn-outline-success btn-sm">
+                <i class="fa fa-share-alt"></i> {{#str}}sharethiscollection, local_byblos{{/str}}
+            </a>
+            <form method="post" action="{{{deleteurl}}}" class="d-inline"
+                  onsubmit="return confirm('{{#str}}confirmdeletecollection, local_byblos{{/str}}');">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="collection">
+                <input type="hidden" name="id" value="{{collection.id}}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fa fa-trash"></i> {{#str}}deletecollection, local_byblos{{/str}}
+                </button>
+            </form>
+            {{/iscreator}}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2>
+                {{collection.title}}
+                {{#group.is_group}}
+                <span class="badge badge-info ml-2 align-middle"><i class="fa fa-users"></i> {{group.group_name}}</span>
+                {{/group.is_group}}
+            </h2>
+            {{#collection.description}}
+            <p class="text-muted">{{{collection.description}}}</p>
+            {{/collection.description}}
+            {{#group.is_group}}
+            <p class="text-muted small mb-0">
+                <i class="fa fa-info-circle"></i> {{#str}}collection_group_hint, local_byblos{{/str}}
+            </p>
+            {{/group.is_group}}
+            <small class="text-muted">{{collection.timecreated}}</small>
+        </div>
+    </div>
+
+    <h4>{{#str}}tab_pages, local_byblos{{/str}}</h4>
+
+    {{#has_pages}}
+    <div class="row byblos-collection-pages mb-4">
+        {{#pages}}
+        <div class="col-md-4 col-sm-6 mb-3">
+            <div class="card h-100 byblos-page-card {{theme_class}} {{#is_home}}byblos-page-card-home{{/is_home}}">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{{{viewurl}}}">{{title}}</a>
+                    </h5>
+                    {{#is_home}}
+                    <span class="badge badge-primary mr-1"><i class="fa fa-home"></i> {{#str}}collection_home_badge, local_byblos{{/str}}</span>
+                    {{/is_home}}
+                    <span class="badge badge-secondary">{{status}}</span>
+                    {{#owner_name}}
+                    <p class="text-muted small mb-0 mt-2">
+                        <i class="fa fa-user-o"></i> {{owner_name}}
+                        {{#is_mine}}<span class="badge badge-light">{{#str}}collection_your_contribution, local_byblos{{/str}}</span>{{/is_mine}}
+                    </p>
+                    {{/owner_name}}
+                </div>
+                {{#cancontribute}}
+                <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
+                    <div class="btn-group byblos-toolbar">
+                        <form method="post" action="{{{actionurl}}}" class="d-inline">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="action" value="movepage">
+                            <input type="hidden" name="direction" value="up">
+                            <input type="hidden" name="pageid" value="{{id}}">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" {{^can_up}}disabled{{/can_up}}
+                                    title="{{#str}}collection_move_up, local_byblos{{/str}}">
+                                <i class="fa fa-arrow-up"></i>
+                            </button>
+                        </form>
+                        <form method="post" action="{{{actionurl}}}" class="d-inline">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="action" value="movepage">
+                            <input type="hidden" name="direction" value="down">
+                            <input type="hidden" name="pageid" value="{{id}}">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" {{^can_down}}disabled{{/can_down}}
+                                    title="{{#str}}collection_move_down, local_byblos{{/str}}">
+                                <i class="fa fa-arrow-down"></i>
+                            </button>
+                        </form>
+                        {{^is_home}}
+                        <form method="post" action="{{{actionurl}}}" class="d-inline">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="action" value="sethomepage">
+                            <input type="hidden" name="pageid" value="{{id}}">
+                            <button type="submit" class="btn btn-sm btn-outline-primary"
+                                    title="{{#str}}collection_make_home, local_byblos{{/str}}">
+                                <i class="fa fa-home"></i>
+                            </button>
+                        </form>
+                        {{/is_home}}
+                    </div>
+                    <div>
+                        <a href="{{{viewurl}}}" class="btn btn-sm btn-outline-primary">
+                            {{#str}}viewpage, local_byblos{{/str}}
+                        </a>
+                        {{#can_remove}}
+                        <form method="post" action="{{{actionurl}}}" class="d-inline">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="action" value="removepage">
+                            <input type="hidden" name="pageid" value="{{id}}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    title="{{#str}}collection_remove_page, local_byblos{{/str}}">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </form>
+                        {{/can_remove}}
+                    </div>
+                </div>
+                {{/cancontribute}}
+            </div>
+        </div>
+        {{/pages}}
+    </div>
+    {{/has_pages}}
+    {{^has_pages}}
+    <div class="alert alert-info mb-4">
+        {{#str}}nopagesincollection, local_byblos{{/str}}
+    </div>
+    {{/has_pages}}
+
+    {{#has_available}}
+    <div class="card">
+        <div class="card-body">
+            <h5>{{#str}}addpages, local_byblos{{/str}}</h5>
+            <p class="text-muted">{{#str}}availablepages, local_byblos{{/str}}</p>
+            {{#availablepages}}
+            <form method="post" action="{{{actionurl}}}" class="d-inline mr-2 mb-2">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="addpage">
+                <input type="hidden" name="pageid" value="{{id}}">
+                <button type="submit" class="btn btn-sm btn-outline-primary mb-1">
+                    <i class="fa fa-plus"></i> {{title}}
+                </button>
+            </form>
+            {{/availablepages}}
+        </div>
+    </div>
+    {{/has_available}}
+</div>

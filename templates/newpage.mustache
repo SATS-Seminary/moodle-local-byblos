@@ -1,0 +1,84 @@
+{{!
+    Template gallery — choose a template to create a new portfolio page.
+
+    @package    local_byblos
+    @copyright  2026 South African Theological Seminary
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="byblos-newpage">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>{{#str}}choosetpl, local_byblos{{/str}}</h3>
+        <a href="{{{dashurl}}}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa fa-arrow-left"></i> {{#str}}dashboard, local_byblos{{/str}}
+        </a>
+    </div>
+    <p class="text-muted mb-4">{{#str}}choosetpl_desc, local_byblos{{/str}}</p>
+
+    <form method="post" action="{{{actionurl}}}" id="byblos-newpage-form">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="template" id="byblos-selected-template" value="">
+
+        <div class="form-group mb-4">
+            <label for="byblos-page-title">{{#str}}pagetitle, local_byblos{{/str}}</label>
+            <input type="text" class="form-control" id="byblos-page-title" name="title"
+                   placeholder="{{#str}}pagetitle_placeholder, local_byblos{{/str}}" maxlength="255">
+        </div>
+
+        <div class="row">
+            {{#templates}}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card byblos-template-card h-100" data-template="{{key}}" role="button" tabindex="0">
+                    <div class="byblos-template-thumb" data-preview-url="{{{previewurl}}}">
+                        <iframe class="byblos-template-thumb-iframe" src="about:blank"
+                                data-src="{{{previewurl}}}" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+                        <div class="byblos-template-thumb-overlay"></div>
+                        <button type="button" class="btn btn-light btn-sm byblos-template-preview-btn"
+                                data-preview-url="{{{previewurl}}}"
+                                title="{{#str}}preview_template, local_byblos{{/str}}">
+                            <i class="fa fa-search-plus"></i> {{#str}}preview_template, local_byblos{{/str}}
+                        </button>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fa {{icon}} mr-1"></i> {{name}}
+                        </h5>
+                        <p class="card-text text-muted small">{{description}}</p>
+                        <div class="mt-2">
+                            <span class="badge badge-secondary">{{sectionlabel}}</span>
+                            {{#has_recommended}}
+                            <span class="badge badge-info ml-1">
+                                <i class="fa fa-star"></i> {{recommended_theme}}
+                            </span>
+                            {{/has_recommended}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/templates}}
+        </div>
+
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary btn-lg" id="byblos-create-btn" disabled>
+                <i class="fa fa-plus"></i> {{#str}}createpage, local_byblos{{/str}}
+            </button>
+        </div>
+    </form>
+
+    {{! Full-size preview modal — populated on demand by the AMD module }}
+    <div class="modal fade byblos-template-preview-modal" id="byblos-template-preview-modal" tabindex="-1"
+         aria-hidden="true" role="dialog">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{#str}}preview_template, local_byblos{{/str}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" style="height: 70vh;">
+                    <iframe id="byblos-template-preview-frame" src="about:blank"
+                            style="width: 100%; height: 100%; border: 0;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/byblos/db" VERSION="2026042000" COMMENT="XMLDB schema for local_byblos ePortfolio plugin."
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+
+    <!-- Artefact: any user-created content item (text, file, reflection, etc.) -->
+    <TABLE NAME="local_byblos_artefact" COMMENT="Stores portfolio artefacts (content items).">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid"       TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="artefacttype" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="title"        TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description"  TYPE="text"             NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="content"      TYPE="text"             NOTNULL="false" SEQUENCE="false" COMMENT="LONGTEXT content body."/>
+        <FIELD NAME="fileid"       TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="sourceref"    TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="External source reference."/>
+        <FIELD NAME="timecreated"  TYPE="int"  LENGTH="10" NOTNULL="true"  DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int"  LENGTH="10" NOTNULL="true"  DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_userid_type" UNIQUE="false" FIELDS="userid, artefacttype"/>
+        <INDEX NAME="ix_timecreated" UNIQUE="false" FIELDS="timecreated"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Page: a portfolio page composed of sections -->
+    <TABLE NAME="local_byblos_page" COMMENT="Stores portfolio pages.">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid"       TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="title"        TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description"  TYPE="text"              NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="layoutkey"    TYPE="char" LENGTH="50"  NOTNULL="true" DEFAULT="single" SEQUENCE="false"/>
+        <FIELD NAME="themekey"     TYPE="char" LENGTH="50"  NOTNULL="true" DEFAULT="clean" SEQUENCE="false"/>
+        <FIELD NAME="status"       TYPE="char" LENGTH="20"  NOTNULL="true" DEFAULT="draft" SEQUENCE="false"/>
+        <FIELD NAME="timecreated"  TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_userid_status" UNIQUE="false" FIELDS="userid, status"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Section: a content block within a page -->
+    <TABLE NAME="local_byblos_section" COMMENT="Stores sections (content blocks) within a portfolio page.">
+      <FIELDS>
+        <FIELD NAME="id"          TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="pageid"      TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sectiontype" TYPE="char" LENGTH="50"  NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sortorder"   TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="configdata"  TYPE="text"              NOTNULL="false" SEQUENCE="false" COMMENT="JSON config for this section."/>
+        <FIELD NAME="content"     TYPE="text"              NOTNULL="false" SEQUENCE="false" COMMENT="LONGTEXT rendered content."/>
+        <FIELD NAME="timecreated" TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_pageid" TYPE="foreign" FIELDS="pageid" REFTABLE="local_byblos_page" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_pageid_sort" UNIQUE="false" FIELDS="pageid, sortorder"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Collection: a group of pages. When groupid is set, every member of that
+         Moodle group can contribute their own pages to the collection. -->
+    <TABLE NAME="local_byblos_collection" COMMENT="Stores portfolio collections (groups of pages).">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid"       TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="groupid"      TYPE="int"  LENGTH="10"  NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="title"        TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description"  TYPE="text"              NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated"  TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_groupid" TYPE="foreign" FIELDS="groupid" REFTABLE="groups" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="ix_groupid" UNIQUE="false" FIELDS="groupid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Collection-Page mapping -->
+    <TABLE NAME="local_byblos_collection_page" COMMENT="Maps pages to collections with sort order.">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="collectionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="pageid"       TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sortorder"    TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="is_primary"   TYPE="int" LENGTH="1"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_collectionid" TYPE="foreign" FIELDS="collectionid" REFTABLE="local_byblos_collection" REFFIELDS="id"/>
+        <KEY NAME="fk_pageid" TYPE="foreign" FIELDS="pageid" REFTABLE="local_byblos_page" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_collectionid_sort" UNIQUE="false" FIELDS="collectionid, sortorder"/>
+        <INDEX NAME="uix_collection_page" UNIQUE="true" FIELDS="collectionid, pageid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Share: sharing rules for pages/collections -->
+    <TABLE NAME="local_byblos_share" COMMENT="Stores sharing rules for pages and collections.">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="pageid"       TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="collectionid" TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="sharetype"    TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sharevalue"   TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="token"        TYPE="char" LENGTH="64"  NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated"  TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_pageid" TYPE="foreign" FIELDS="pageid" REFTABLE="local_byblos_page" REFFIELDS="id"/>
+        <KEY NAME="fk_collectionid" TYPE="foreign" FIELDS="collectionid" REFTABLE="local_byblos_collection" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_pageid" UNIQUE="false" FIELDS="pageid"/>
+        <INDEX NAME="ix_collectionid" UNIQUE="false" FIELDS="collectionid"/>
+        <INDEX NAME="ix_token" UNIQUE="false" FIELDS="token"/>
+        <INDEX NAME="ix_sharetype_value" UNIQUE="false" FIELDS="sharetype, sharevalue"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Page-Course tagging -->
+    <TABLE NAME="local_byblos_page_course" COMMENT="Tags pages to courses for course-level portfolio views.">
+      <FIELDS>
+        <FIELD NAME="id"          TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="pageid"      TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="courseid"    TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_pageid" TYPE="foreign" FIELDS="pageid" REFTABLE="local_byblos_page" REFFIELDS="id"/>
+        <KEY NAME="fk_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="uix_pageid_courseid" UNIQUE="true" FIELDS="pageid, courseid"/>
+        <INDEX NAME="ix_courseid" UNIQUE="false" FIELDS="courseid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Submission: assignment-linked portfolio submissions -->
+    <TABLE NAME="local_byblos_submission" COMMENT="Stores portfolio submissions linked to assignments.">
+      <FIELDS>
+        <FIELD NAME="id"                 TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="pageid"             TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="collectionid"       TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="assignmentid"       TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="mdl_assign.id"/>
+        <FIELD NAME="assignsubmissionid" TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="mdl_assign_submission.id"/>
+        <FIELD NAME="userid"             TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="snapshotmode"       TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="snapshot_on_submit" SEQUENCE="false" COMMENT="snapshot_on_submit | live | live_until_locked"/>
+        <FIELD NAME="snapshotid"         TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated"        TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified"       TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_pageid" TYPE="foreign" FIELDS="pageid" REFTABLE="local_byblos_page" REFFIELDS="id"/>
+        <KEY NAME="fk_collectionid" TYPE="foreign" FIELDS="collectionid" REFTABLE="local_byblos_collection" REFFIELDS="id"/>
+        <KEY NAME="fk_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_assignmentid_userid" UNIQUE="false" FIELDS="assignmentid, userid"/>
+        <INDEX NAME="ix_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="ix_assignsubmissionid" UNIQUE="false" FIELDS="assignsubmissionid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Snapshot: a frozen copy of a page for submission -->
+    <TABLE NAME="local_byblos_snapshot" COMMENT="Frozen JSON snapshot of a page and its sections at submission or lock time.">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10" NOTNULL="true"  SEQUENCE="true"/>
+        <FIELD NAME="pageid"       TYPE="int"  LENGTH="10" NOTNULL="true"  SEQUENCE="false" COMMENT="Source page id at snapshot time."/>
+        <FIELD NAME="capturedjson" TYPE="text"             NOTNULL="true"  SEQUENCE="false" COMMENT="Full page + sections + artefact refs as JSON."/>
+        <FIELD NAME="timecreated"  TYPE="int"  LENGTH="10" NOTNULL="true"  DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_pageid" TYPE="foreign" FIELDS="pageid" REFTABLE="local_byblos_page" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <!-- Comment: inline feedback anchored to a submission -->
+    <TABLE NAME="local_byblos_comment" COMMENT="Inline comments on a submission, by teacher or peer reviewer.">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="true"/>
+        <FIELD NAME="submissionid" TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="false"/>
+        <FIELD NAME="anchorkey"    TYPE="char" LENGTH="100" NOTNULL="true"  SEQUENCE="false" COMMENT="Free-form anchor: 'page', 'section:42', 'artefact:17'."/>
+        <FIELD NAME="authorid"     TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="false"/>
+        <FIELD NAME="role"         TYPE="char" LENGTH="20"  NOTNULL="true"  DEFAULT="teacher" SEQUENCE="false" COMMENT="teacher | peer | self"/>
+        <FIELD NAME="body"         TYPE="text"              NOTNULL="true"  SEQUENCE="false"/>
+        <FIELD NAME="timecreated"  TYPE="int"  LENGTH="10"  NOTNULL="true"  DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int"  LENGTH="10"  NOTNULL="true"  DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_submissionid" TYPE="foreign" FIELDS="submissionid" REFTABLE="local_byblos_submission" REFFIELDS="id"/>
+        <KEY NAME="fk_authorid" TYPE="foreign" FIELDS="authorid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_submissionid_anchor" UNIQUE="false" FIELDS="submissionid, anchorkey"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Peer assignment: records who reviews whom -->
+    <TABLE NAME="local_byblos_peer_assignment" COMMENT="Peer review assignments: one row per (reviewer, reviewee) for a given assignment.">
+      <FIELDS>
+        <FIELD NAME="id"              TYPE="int"  LENGTH="10" NOTNULL="true"  SEQUENCE="true"/>
+        <FIELD NAME="assignmentid"    TYPE="int"  LENGTH="10" NOTNULL="true"  SEQUENCE="false" COMMENT="mdl_assign.id"/>
+        <FIELD NAME="reviewerid"      TYPE="int"  LENGTH="10" NOTNULL="true"  SEQUENCE="false"/>
+        <FIELD NAME="revieweeuserid"  TYPE="int"  LENGTH="10" NOTNULL="true"  SEQUENCE="false"/>
+        <FIELD NAME="submissionid"    TYPE="int"  LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="local_byblos_submission.id once reviewee submits."/>
+        <FIELD NAME="status"          TYPE="char" LENGTH="20" NOTNULL="true"  DEFAULT="pending" SEQUENCE="false" COMMENT="pending | complete | declined"/>
+        <FIELD NAME="advisoryscore"   TYPE="number" LENGTH="6" DECIMALS="2" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="rubricdata"      TYPE="text"             NOTNULL="false" SEQUENCE="false" COMMENT="Optional rubric payload (JSON)."/>
+        <FIELD NAME="timeassigned"    TYPE="int"  LENGTH="10" NOTNULL="true"  DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecompleted"   TYPE="int"  LENGTH="10" NOTNULL="true"  DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_reviewerid" TYPE="foreign" FIELDS="reviewerid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_revieweeuserid" TYPE="foreign" FIELDS="revieweeuserid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_submissionid" TYPE="foreign" FIELDS="submissionid" REFTABLE="local_byblos_submission" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_assignmentid_reviewer" UNIQUE="false" FIELDS="assignmentid, reviewerid"/>
+        <INDEX NAME="ix_assignmentid_reviewee" UNIQUE="false" FIELDS="assignmentid, revieweeuserid"/>
+        <INDEX NAME="uix_assign_reviewer_reviewee" UNIQUE="true" FIELDS="assignmentid, reviewerid, revieweeuserid"/>
+      </INDEXES>
+    </TABLE>
+
+  </TABLES>
+</XMLDB>

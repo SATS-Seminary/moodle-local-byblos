@@ -1,0 +1,142 @@
+{{!
+    View a single portfolio page with themed section-based rendering.
+
+    The page is rendered server-side by \local_byblos\renderer::render_page()
+    and injected as raw HTML via the rendered_content variable. The template provides
+    the surrounding chrome: navigation, action buttons, metadata header.
+
+    Context variables:
+    - page (object) Page record with id, title, description, themekey, statuslabel, timecreated, is_draft.
+    - collection_nav (object) { has_nav, collection_title, collection_url, pages: [{id, title, url, is_current}] }
+      rendered as a nav strip when has_nav is true. Sibling links preserve preview mode when active.
+    - isowner (bool) Whether the viewer owns this page.
+    - has_sections (bool) Whether the page has any sections.
+    - rendered_content (string) Full HTML from renderer::render_page().
+    - dashurl (string) URL back to the dashboard.
+    - editurl (string) URL to the page editor.
+    - shareurl (string) URL to the share settings.
+    - exporturl (string) URL to export the page.
+    - deleteurl (string) URL for the delete action.
+    - sesskey (string) Moodle session key.
+
+    @package    local_byblos
+    @copyright  2026 South African Theological Seminary
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="byblos-page-view" data-theme="{{page.themekey}}">
+
+    {{#ispreview}}
+    <div class="alert alert-info byblos-preview-banner mb-3" role="status">
+        <i class="fa fa-eye"></i>
+        {{#str}}previewing_as_viewer_banner, local_byblos{{/str}}
+    </div>
+    {{/ispreview}}
+
+    {{#collection_nav.has_nav}}
+    <nav class="byblos-collection-nav mb-3">
+        <div class="byblos-collection-nav-label">
+            <small class="text-muted"><i class="fa fa-folder-open-o"></i>
+                <a href="{{{collection_nav.collection_url}}}">{{collection_nav.collection_title}}</a>
+            </small>
+        </div>
+        <ul class="nav nav-pills byblos-collection-nav-pills">
+            {{#collection_nav.pages}}
+            <li class="nav-item">
+                <a class="nav-link {{#is_current}}active{{/is_current}}" href="{{{url}}}">{{title}}</a>
+            </li>
+            {{/collection_nav.pages}}
+        </ul>
+    </nav>
+    {{/collection_nav.has_nav}}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <a href="{{{dashurl}}}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa fa-arrow-left"></i> {{#str}}dashboard, local_byblos{{/str}}
+            </a>
+        </div>
+        {{#isowner}}
+        <div class="btn-group byblos-toolbar">
+            <a href="{{{previewurl}}}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener"
+               title="{{#str}}previewthispage, local_byblos{{/str}}">
+                <i class="fa fa-eye"></i> {{#str}}previewthispage, local_byblos{{/str}}
+            </a>
+            <a href="{{{editurl}}}" class="btn btn-outline-primary btn-sm">
+                <i class="fa fa-pencil"></i> {{#str}}editthispage, local_byblos{{/str}}
+            </a>
+            {{#page.is_draft}}
+            <form method="post" action="{{{publishurl}}}" class="d-inline"
+                  onsubmit="return confirm('{{#str}}confirmpublishpage, local_byblos{{/str}}');">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="id" value="{{page.id}}">
+                <input type="hidden" name="action" value="publish">
+                <input type="hidden" name="returnto" value="view">
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fa fa-check-circle"></i> {{#str}}publishpage, local_byblos{{/str}}
+                </button>
+            </form>
+            {{/page.is_draft}}
+            {{^page.is_draft}}
+            <form method="post" action="{{{publishurl}}}" class="d-inline"
+                  onsubmit="return confirm('{{#str}}confirmreverttodraft, local_byblos{{/str}}');">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="id" value="{{page.id}}">
+                <input type="hidden" name="action" value="draft">
+                <input type="hidden" name="returnto" value="view">
+                <button type="submit" class="btn btn-outline-warning btn-sm">
+                    <i class="fa fa-undo"></i> {{#str}}reverttodraft, local_byblos{{/str}}
+                </button>
+            </form>
+            {{/page.is_draft}}
+            <a href="{{{shareurl}}}" class="btn btn-outline-success btn-sm">
+                <i class="fa fa-share-alt"></i> {{#str}}sharethispage, local_byblos{{/str}}
+            </a>
+            <a href="{{{exporturl}}}" class="btn btn-outline-info btn-sm">
+                <i class="fa fa-download"></i> {{#str}}exportthispage, local_byblos{{/str}}
+            </a>
+            <form method="post" action="{{{deleteurl}}}" class="d-inline"
+                  onsubmit="return confirm('{{#str}}confirmdeletepage, local_byblos{{/str}}');">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="page">
+                <input type="hidden" name="id" value="{{page.id}}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fa fa-trash"></i> {{#str}}deletethispage, local_byblos{{/str}}
+                </button>
+            </form>
+        </div>
+        {{/isowner}}
+    </div>
+
+    {{^ispreview}}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2>{{page.title}}</h2>
+            {{#page.is_draft}}
+            <span class="badge badge-warning">{{page.statuslabel}}</span>
+            {{/page.is_draft}}
+            {{^page.is_draft}}
+            <span class="badge badge-success">{{page.statuslabel}}</span>
+            {{/page.is_draft}}
+            {{#page.description}}
+            <p class="text-muted mt-2">{{{page.description}}}</p>
+            {{/page.description}}
+            <small class="text-muted">{{page.timecreated}}</small>
+        </div>
+    </div>
+    {{/ispreview}}
+
+    {{! Section-based rendered content from \local_byblos\renderer::render_page() }}
+    {{#has_sections}}
+    <div class="byblos-rendered-content">
+        {{{rendered_content}}}
+    </div>
+    {{/has_sections}}
+    {{^has_sections}}
+    <div class="alert alert-info">
+        {{#str}}nosections, local_byblos{{/str}}
+        {{#isowner}}
+        <a href="{{{editurl}}}">{{#str}}startediting, local_byblos{{/str}}</a>
+        {{/isowner}}
+    </div>
+    {{/has_sections}}
+</div>

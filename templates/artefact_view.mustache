@@ -1,0 +1,71 @@
+{{!
+    View a single artefact with metadata, content, and file attachment.
+
+    Context variables:
+    - artefact (object) Artefact record with id, title, typelabel, description, content,
+      has_content, timecreated.
+    - isowner (bool) Whether the viewer owns this artefact.
+    - has_file (bool) Whether the artefact has an attached file.
+    - file_url (string) URL to the attached file.
+    - file_name (string) Name of the attached file.
+    - dashurl (string) URL back to the artefacts list.
+    - editurl (string) URL to edit the artefact.
+    - deleteurl (string) URL for the delete action.
+    - sesskey (string) Moodle session key.
+
+    @package    local_byblos
+    @copyright  2026 South African Theological Seminary
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="byblos-artefact-view">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{{dashurl}}}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa fa-arrow-left"></i> {{#str}}myartefacts, local_byblos{{/str}}
+        </a>
+        {{#isowner}}
+        <div class="btn-group">
+            <a href="{{{editurl}}}" class="btn btn-outline-primary btn-sm">
+                <i class="fa fa-pencil"></i> {{#str}}editartefact, local_byblos{{/str}}
+            </a>
+            <form method="post" action="{{{deleteurl}}}" class="d-inline"
+                  onsubmit="return confirm('{{#str}}confirmdeleteartefact, local_byblos{{/str}}');">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="artefact">
+                <input type="hidden" name="id" value="{{artefact.id}}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fa fa-trash"></i> {{#str}}deleteartefact, local_byblos{{/str}}
+                </button>
+            </form>
+        </div>
+        {{/isowner}}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h2>{{artefact.title}}</h2>
+            <span class="badge badge-info">{{artefact.typelabel}}</span>
+            {{#artefact.description}}
+            <p class="text-muted mt-2">{{{artefact.description}}}</p>
+            {{/artefact.description}}
+
+            {{#artefact.has_content}}
+            <hr>
+            <div class="byblos-artefact-content">
+                {{{artefact.content}}}
+            </div>
+            {{/artefact.has_content}}
+
+            {{#has_file}}
+            <hr>
+            <div class="byblos-artefact-file">
+                <i class="fa fa-paperclip"></i>
+                <a href="{{{file_url}}}" target="_blank">{{file_name}}</a>
+            </div>
+            {{/has_file}}
+
+            <hr>
+            <small class="text-muted">{{artefact.timecreated}}</small>
+        </div>
+    </div>
+</div>

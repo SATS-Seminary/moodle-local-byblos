@@ -1,0 +1,142 @@
+{{!
+    Peer review management page for teachers.
+
+    Context variables required:
+     * assignmentname: string
+     * assignmentid: int
+     * actionurl: string
+     * sesskey: string
+     * reviewees: array of {userid, fullname, submissionid, reviewurl, reviewers, hasreviewers}
+     *   where reviewers is {rowid, reviewername, status, statuslabel, timeassigned}
+     * hasreviewees: bool
+     * revieweropts: array of {id, name}
+     * revieweeopts: array of {id, name}
+
+    @package    local_byblos
+    @copyright  2026 South African Theological Seminary
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="byblos-peerassign">
+
+    <h2>{{#str}}peerassign_title, local_byblos{{/str}}</h2>
+    <p class="text-muted">{{assignmentname}}</p>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>{{#str}}peerassign_manual, local_byblos{{/str}}</h5>
+            <form method="post" action="{{{actionurl}}}" class="form-inline">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="manual">
+                <div class="form-group mr-2 mb-2">
+                    <label class="mr-1" for="byblos-reviewer">{{#str}}col_reviewer, local_byblos{{/str}}</label>
+                    <select id="byblos-reviewer" name="reviewerid" class="form-control form-control-sm" required>
+                        <option value="">{{#str}}chooseone, assignsubmission_byblos{{/str}}</option>
+                        {{#revieweropts}}
+                            <option value="{{id}}">{{name}}</option>
+                        {{/revieweropts}}
+                    </select>
+                </div>
+                <div class="form-group mr-2 mb-2">
+                    <label class="mr-1" for="byblos-reviewee">{{#str}}col_reviewee, local_byblos{{/str}}</label>
+                    <select id="byblos-reviewee" name="revieweeid" class="form-control form-control-sm" required>
+                        <option value="">{{#str}}chooseone, assignsubmission_byblos{{/str}}</option>
+                        {{#revieweeopts}}
+                            <option value="{{id}}">{{name}}</option>
+                        {{/revieweeopts}}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm mb-2">
+                    <i class="fa fa-plus"></i> {{#str}}peerassign_addreviewer, local_byblos{{/str}}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>{{#str}}peerassign_random, local_byblos{{/str}}</h5>
+            <form method="post" action="{{{actionurl}}}" class="form-inline">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="random">
+                <div class="form-group mr-2 mb-2">
+                    <label class="mr-1" for="byblos-peercount">{{#str}}peerassign_peersperstudent, local_byblos{{/str}}</label>
+                    <input type="number" id="byblos-peercount" name="peercount" min="1" max="20" value="2"
+                           class="form-control form-control-sm" style="width: 5rem;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm mb-2">
+                    <i class="fa fa-random"></i> {{#str}}peerassign_autoassign, local_byblos{{/str}}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>{{#str}}peerassign_group, local_byblos{{/str}}</h5>
+            <form method="post" action="{{{actionurl}}}" class="d-inline">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="group">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fa fa-users"></i> {{#str}}peerassign_assigngroups, local_byblos{{/str}}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <h4 class="mt-4">{{#str}}peerassign_currentassignments, local_byblos{{/str}}</h4>
+
+    {{#hasreviewees}}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>{{#str}}col_reviewee, local_byblos{{/str}}</th>
+                <th>{{#str}}col_reviewers, local_byblos{{/str}}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#reviewees}}
+            <tr>
+                <td>
+                    <a href="{{{reviewurl}}}">{{fullname}}</a>
+                </td>
+                <td>
+                    {{#hasreviewers}}
+                    <ul class="list-unstyled mb-0">
+                        {{#reviewers}}
+                        <li class="d-flex align-items-center mb-1">
+                            <span class="mr-2">
+                                {{reviewername}}
+                                <span class="badge badge-secondary ml-1">{{statuslabel}}</span>
+                            </span>
+                            <small class="text-muted mr-2">{{timeassigned}}</small>
+                            <form method="post" action="{{{../actionurl}}}" class="d-inline">
+                                <input type="hidden" name="sesskey" value="{{../sesskey}}">
+                                <input type="hidden" name="action" value="remove">
+                                <input type="hidden" name="rowid" value="{{rowid}}">
+                                <button type="submit" class="btn btn-link btn-sm text-danger p-0"
+                                        title="{{#str}}peerassign_remove, local_byblos{{/str}}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </form>
+                        </li>
+                        {{/reviewers}}
+                    </ul>
+                    {{/hasreviewers}}
+                    {{^hasreviewers}}
+                    <span class="text-muted">{{#str}}peerassign_noassignments, local_byblos{{/str}}</span>
+                    {{/hasreviewers}}
+                </td>
+                <td></td>
+            </tr>
+        {{/reviewees}}
+        </tbody>
+    </table>
+    {{/hasreviewees}}
+    {{^hasreviewees}}
+    <div class="alert alert-info">
+        {{#str}}peerassign_noreviewees, local_byblos{{/str}}
+    </div>
+    {{/hasreviewees}}
+
+</div>

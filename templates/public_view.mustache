@@ -1,0 +1,100 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+    @template local_byblos/public_view
+    @package  local_byblos
+    @copyright 2026 South African Theological Seminary
+    @license  http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+
+<div class="local-byblos-public-view">
+    <div class="container-fluid py-4">
+        {{! Header }}
+        <div class="mb-4">
+            <h2>{{ title }}</h2>
+            <p class="text-muted">
+                <i class="fa fa-user"></i> {{ owner }}
+                <span class="ml-3"><i class="fa fa-calendar"></i> {{ timecreated }}</span>
+            </p>
+            {{# description }}
+            <div class="lead mb-3">{{{ description }}}</div>
+            {{/ description }}
+        </div>
+
+        {{! Single page view }}
+        {{# is_page }}
+        {{# hassections }}
+        <div class="byblos-page-content">
+            {{# sections }}
+            <div class="byblos-section mb-4">
+                {{{ content }}}
+            </div>
+            {{/ sections }}
+        </div>
+        {{/ hassections }}
+
+        {{^ hassections }}
+        <div class="alert alert-light">
+            {{# str }} no_results, local_byblos {{/ str }}
+        </div>
+        {{/ hassections }}
+        {{/ is_page }}
+
+        {{! Collection view }}
+        {{# is_collection }}
+        {{# haspages }}
+        <div class="byblos-collection-content">
+            {{# pages }}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    {{# description }}
+                    <div class="mb-3">{{{ description }}}</div>
+                    {{/ description }}
+
+                    {{# hassections }}
+                    {{# sections }}
+                    <div class="byblos-section mb-3">
+                        {{{ content }}}
+                    </div>
+                    {{/ sections }}
+                    {{/ hassections }}
+
+                    {{^ hassections }}
+                    <p class="text-muted">{{# str }} no_results, local_byblos {{/ str }}</p>
+                    {{/ hassections }}
+                </div>
+            </div>
+            {{/ pages }}
+        </div>
+        {{/ haspages }}
+
+        {{^ haspages }}
+        <div class="alert alert-light">
+            {{# str }} no_results, local_byblos {{/ str }}
+        </div>
+        {{/ haspages }}
+        {{/ is_collection }}
+
+        {{! Footer }}
+        <hr>
+        <p class="text-muted text-center small">
+            {{# str }} pluginfullname, local_byblos {{/ str }}
+        </p>
+    </div>
+</div>

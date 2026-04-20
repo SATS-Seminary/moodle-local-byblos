@@ -1,0 +1,315 @@
+{{!
+    @template   local_byblos/editor
+    @version    2026041600
+    @copyright  2026 South African Theological Seminary
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Section-based portfolio page editor. Renders a vertical stack of sections
+    with hover toolbars, inline edit panels, and a section type picker.
+}}
+
+<div class="byblos-editor {{theme_css_class}}" id="byblos-editor" data-pageid="{{pageid}}" data-theme="{{theme_key}}">
+
+    {{! Header row }}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0 byblos-editable-title" id="byblos-page-title"
+                title="{{#str}}edittitle_tooltip, local_byblos{{/str}}"
+                tabindex="0" role="button">{{title}}</h2>
+            <span class="badge badge-secondary">{{status}}</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <div class="dropdown d-inline-block mr-2" id="byblos-collection-control">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                        id="byblos-collection-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa fa-folder-open-o"></i>
+                    <span class="byblos-collection-current-label">{{#str}}collection_none, local_byblos{{/str}}</span>
+                </button>
+                <div class="dropdown-menu byblos-collection-dropdown p-3" style="min-width:300px;">
+                    {{! populated by AMD module }}
+                </div>
+            </div>
+            <button class="btn btn-outline-info btn-sm mr-2" id="byblos-preview-toggle">
+                <i class="fa fa-eye"></i> {{#str}} action_preview, local_byblos {{/str}}
+            </button>
+            <button class="btn btn-outline-info btn-sm mr-2" id="byblos-checklist-toggle">
+                <i class="fa fa-check-square-o"></i> {{#str}} checklist_toggle, local_byblos {{/str}}
+            </button>
+            {{#is_draft}}
+            <form method="post" action="{{publishurl}}" class="d-inline mr-2"
+                  onsubmit="return confirm('{{#str}}confirmpublishpage, local_byblos{{/str}}');">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="id" value="{{pageid}}">
+                <input type="hidden" name="action" value="publish">
+                <input type="hidden" name="returnto" value="editor">
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fa fa-check-circle"></i> {{#str}} publishpage, local_byblos {{/str}}
+                </button>
+            </form>
+            {{/is_draft}}
+            {{^is_draft}}
+            <form method="post" action="{{publishurl}}" class="d-inline mr-2"
+                  onsubmit="return confirm('{{#str}}confirmreverttodraft, local_byblos{{/str}}');">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="id" value="{{pageid}}">
+                <input type="hidden" name="action" value="draft">
+                <input type="hidden" name="returnto" value="editor">
+                <button type="submit" class="btn btn-outline-warning btn-sm">
+                    <i class="fa fa-undo"></i> {{#str}} reverttodraft, local_byblos {{/str}}
+                </button>
+            </form>
+            {{/is_draft}}
+            <a href="{{viewurl}}" class="btn btn-outline-primary btn-sm mr-2">
+                <i class="fa fa-external-link"></i> {{#str}} viewpage, local_byblos {{/str}}
+            </a>
+            <a href="{{dashboardurl}}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa fa-arrow-left"></i> {{#str}} dashboard, local_byblos {{/str}}
+            </a>
+        </div>
+    </div>
+
+    {{#description}}
+    <p class="text-muted mb-3">{{description}}</p>
+    {{/description}}
+
+    {{! Settings panel (collapsible) }}
+    <div class="card mb-3 byblos-settings-panel">
+        <div class="card-header d-flex justify-content-between align-items-center"
+             style="cursor:pointer !important;"
+             data-bs-toggle="collapse" data-bs-target="#byblos-settings-body" aria-expanded="false">
+            <strong><i class="fa fa-cog"></i> {{#str}} pagesettings, local_byblos {{/str}}</strong>
+            <i class="fa fa-chevron-down"></i>
+        </div>
+        <div class="collapse" id="byblos-settings-body">
+            <div class="card-body" style="padding:.75rem !important;">
+                <h6 class="mb-2"><i class="fa fa-paint-brush"></i> {{#str}} theme, local_byblos {{/str}}</h6>
+                <div class="d-flex flex-wrap byblos-theme-picker">
+                    {{#themes}}
+                    <div class="byblos-theme-card {{#selected}}byblos-theme-active{{/selected}}"
+                         data-theme="{{key}}" title="{{name}}" style="cursor:pointer !important;">
+                        <div class="byblos-theme-swatch"
+                             style="{{preview_css}} width:48px !important; height:32px !important; border-radius:4px !important;">
+                        </div>
+                        <div class="byblos-theme-label">{{name}}</div>
+                    </div>
+                    {{/themes}}
+                </div>
+                <input type="hidden" id="byblos-selected-theme" value="{{theme_key}}">
+            </div>
+        </div>
+    </div>
+
+    {{! Checklist panel — toggle to show active assignment checklists }}
+    <div class="card mb-3 byblos-checklist-panel" id="byblos-checklist-panel" hidden>
+        <div class="card-header d-flex justify-content-between align-items-center" style="cursor:pointer !important;"
+             data-bs-toggle="collapse" data-bs-target="#byblos-checklist-body" aria-expanded="false">
+            <strong><i class="fa fa-check-square-o"></i> {{#str}} checklist_heading, local_byblos {{/str}}</strong>
+            <i class="fa fa-chevron-down"></i>
+        </div>
+        <div class="collapse" id="byblos-checklist-body">
+            <div class="card-body" style="padding:.75rem !important;" id="byblos-checklist-content">
+                {{! Populated by AMD module }}
+            </div>
+        </div>
+    </div>
+
+    {{! Section stack }}
+    <div class="byblos-section-stack" id="byblos-section-stack">
+
+        {{! Add section button at top }}
+        <div class="byblos-add-row text-center mb-2">
+            <button class="btn btn-outline-secondary btn-sm byblos-add-section-btn" data-position="0">
+                <i class="fa fa-plus"></i> {{#str}} addsection, local_byblos {{/str}}
+            </button>
+        </div>
+
+        {{#sections}}
+        <div class="byblos-section-card card mb-2"
+             data-section-id="{{id}}"
+             data-sectiontype="{{sectiontype}}"
+             data-sortorder="{{sortorder}}"
+             data-configdata="{{configdata}}"
+             data-content="{{content}}">
+            {{! Hover toolbar }}
+            <div class="byblos-section-toolbar">
+                <span class="byblos-type-badge">
+                    <i class="fa fa-puzzle-piece"></i> {{sectiontype}}
+                </span>
+                <div class="byblos-toolbar-actions">
+                    <button class="byblos-tb-btn byblos-tb-edit" title="{{#str}} action_edit_section, local_byblos {{/str}}">
+                        <i class="fa fa-pencil"></i> {{#str}} action_edit_section, local_byblos {{/str}}
+                    </button>
+                    <button class="byblos-tb-btn byblos-tb-up" title="{{#str}} action_move_section, local_byblos {{/str}}">
+                        <i class="fa fa-arrow-up"></i>
+                    </button>
+                    <button class="byblos-tb-btn byblos-tb-down" title="{{#str}} action_move_section, local_byblos {{/str}}">
+                        <i class="fa fa-arrow-down"></i>
+                    </button>
+                    <button class="byblos-tb-btn byblos-tb-delete" title="{{#str}} action_delete_section, local_byblos {{/str}}">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {{! Rendered preview }}
+            <div class="byblos-section-preview">{{{rendered}}}</div>
+            {{! Inline edit panel (inserted by JS) }}
+            <div class="byblos-edit-panel" style="display:none !important;"></div>
+        </div>
+
+        {{! Add section button after each section }}
+        <div class="byblos-add-row text-center mb-2">
+            <button class="btn btn-outline-secondary btn-sm byblos-add-section-btn" data-position="{{sortorder}}">
+                <i class="fa fa-plus"></i> {{#str}} addsection, local_byblos {{/str}}
+            </button>
+        </div>
+        {{/sections}}
+
+        {{^has_sections}}
+        <div class="text-center text-muted py-5" id="byblos-empty-state">
+            <i class="fa fa-puzzle-piece fa-3x mb-3" style="display:block !important;"></i>
+            <p>{{#str}} nosections, local_byblos {{/str}}</p>
+        </div>
+        {{/has_sections}}
+
+    </div>
+
+    {{! Section type picker modal }}
+    {{> local_byblos/section_type_picker }}
+
+</div>
+
+<style>
+/* Byblos Section Editor */
+.byblos-editor .byblos-section-card {
+    position: relative !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.byblos-editor .byblos-section-card:hover {
+    border-color: #80bdff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* Section toolbar */
+.byblos-editor .byblos-section-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 4px 10px !important;
+    background: #f0f0f0 !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    font-size: 0.75rem !important;
+    opacity: 0 !important;
+    transition: opacity 0.15s !important;
+}
+.byblos-editor .byblos-section-card:hover .byblos-section-toolbar {
+    opacity: 1 !important;
+}
+.byblos-editor .byblos-type-badge {
+    color: #888 !important;
+    text-transform: uppercase !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.04em !important;
+}
+.byblos-editor .byblos-toolbar-actions {
+    display: flex !important;
+    gap: 4px !important;
+}
+.byblos-editor .byblos-tb-btn {
+    border: none !important;
+    background: transparent !important;
+    color: #666 !important;
+    padding: 2px 8px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    font-size: 0.75rem !important;
+}
+.byblos-editor .byblos-tb-btn:hover {
+    background: #ddd !important;
+    color: #333 !important;
+}
+.byblos-editor .byblos-tb-delete:hover {
+    background: #f8d7da !important;
+    color: #dc3545 !important;
+}
+
+/* Section preview */
+.byblos-editor .byblos-section-preview {
+    padding: 0 !important;
+    min-height: 40px !important;
+}
+
+/* Inline edit panel */
+.byblos-editor .byblos-edit-panel {
+    background: #fafafa !important;
+    border-top: 2px solid #0d6efd !important;
+    padding: 1rem !important;
+}
+.byblos-editor .byblos-edit-panel .form-group {
+    margin-bottom: 0.75rem !important;
+}
+.byblos-editor .byblos-edit-panel label {
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+/* Add section buttons */
+.byblos-editor .byblos-add-row {
+    opacity: 0 !important;
+    transition: opacity 0.2s !important;
+    height: 32px !important;
+}
+.byblos-editor .byblos-section-stack:hover .byblos-add-row,
+.byblos-editor .byblos-add-row:hover {
+    opacity: 1 !important;
+}
+.byblos-editor .byblos-add-section-btn {
+    font-size: 0.75rem !important;
+    padding: 2px 12px !important;
+    border-style: dashed !important;
+}
+
+/* Theme picker */
+.byblos-theme-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 0.4rem 0.6rem !important;
+    border: 2px solid transparent !important;
+    border-radius: 6px !important;
+    transition: border-color 0.15s !important;
+    min-width: 70px !important;
+    margin-right: 0.5rem !important;
+}
+.byblos-theme-card:hover {
+    border-color: #80bdff !important;
+}
+.byblos-theme-active {
+    border-color: #0d6efd !important;
+    background: rgba(13,110,253,0.05) !important;
+}
+.byblos-theme-label {
+    font-size: 0.7rem !important;
+    margin-top: 2px !important;
+}
+
+/* Preview mode */
+.byblos-editor.byblos-preview-mode .byblos-section-toolbar,
+.byblos-editor.byblos-preview-mode .byblos-add-row,
+.byblos-editor.byblos-preview-mode .byblos-settings-panel,
+.byblos-editor.byblos-preview-mode .byblos-edit-panel {
+    display: none !important;
+}
+.byblos-editor.byblos-preview-mode .byblos-section-card {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+.byblos-editor.byblos-preview-mode .byblos-section-card:hover {
+    border: none !important;
+    box-shadow: none !important;
+}
+</style>
