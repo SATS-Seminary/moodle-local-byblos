@@ -24,13 +24,10 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Provides pre-defined page layout configurations based on Bootstrap 4 grid columns.
  */
 class layout {
-
     /**
      * Returns all available layout definitions.
      *

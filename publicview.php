@@ -27,14 +27,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/../../config.php'); // @codingStandardsIgnoreLine Public token-authenticated endpoint; auth via share token below.
 
 use local_byblos\share;
 use local_byblos\page;
 use local_byblos\collection;
 use local_byblos\section;
-
-// NO require_login() — this is the public access point.
 
 $token = required_param('token', PARAM_ALPHANUM);
 

@@ -24,7 +24,11 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
+// phpcs:disable moodle.Files.LineLength
+// Rationale: this file holds the seed JSON bodies for the built-in page templates.
+// The placeholder copy inside each template is deliberately authored as readable
+// continuous prose rather than fragmented string concatenation, so line-length
+// errors here reflect the content, not structural code that would be hard to read.
 
 /**
  * Manages pre-designed page templates.
@@ -33,7 +37,6 @@ defined('MOODLE_INTERNAL') || die();
  * placeholder content that users can customise.
  */
 class template_manager {
-
     /**
      * Returns all available page template definitions.
      *

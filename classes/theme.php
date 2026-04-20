@@ -24,8 +24,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Provides pre-defined visual themes that can be applied to portfolio pages.
  *
@@ -33,7 +31,6 @@ defined('MOODLE_INTERNAL') || die();
  * CSS classes are scoped to .byblos-theme-{key} in styles.css.
  */
 class theme {
-
     /**
      * Returns all available theme definitions.
      *

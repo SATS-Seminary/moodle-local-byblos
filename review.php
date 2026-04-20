@@ -145,7 +145,8 @@ if ($portfoliohtml === '') {
 
 // Detect optional unified-grader comment library.
 $library = ['available' => false, 'coursecode' => ''];
-if ($role === 'teacher'
+if (
+    $role === 'teacher'
     && \core_component::get_plugin_directory('local', 'unifiedgrader')
     && class_exists(\local_unifiedgrader\course_code_helper::class)
 ) {
@@ -210,9 +211,11 @@ echo \html_writer::start_div('byblos-page-view byblos-review', [
 // Review banner — hidden in embedded mode where the host page supplies its own chrome.
 if (!$embedded) {
     echo \html_writer::start_div('byblos-review-banner d-flex justify-content-between align-items-center mb-3');
-    echo \html_writer::tag('small',
+    echo \html_writer::tag(
+        'small',
         get_string('reviewing_as', 'local_byblos', get_string('role_' . $role, 'local_byblos')),
-        ['class' => 'text-muted']);
+        ['class' => 'text-muted']
+    );
     echo \html_writer::tag('small', s($modelabel), ['class' => 'text-muted']);
     echo \html_writer::end_div();
 }
@@ -352,7 +355,7 @@ if ($peerpanel['enabled']) {
                 ]);
             }
         } else {
-            // 'none' — nothing to render.
+            // Score mode 'none' — nothing to render.
             echo \html_writer::tag(
                 'p',
                 get_string('peerreview_score_none', 'local_byblos'),

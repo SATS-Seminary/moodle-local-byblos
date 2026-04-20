@@ -16,8 +16,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Helper to find active byblos-enabled assignments for a given student.
  *
@@ -30,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class assignment_finder {
-
     /**
      * Return all active byblos-enabled assignments the user is currently
      * enrolled in (as a student) whose deadline has not passed and which

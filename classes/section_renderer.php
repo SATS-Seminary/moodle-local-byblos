@@ -16,8 +16,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Server-side section renderer for the portfolio page editor.
  *
@@ -29,7 +27,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class section_renderer {
-
     /**
      * Render a single section as an HTML fragment.
      *
@@ -98,10 +95,14 @@ class section_renderer {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Individual renderers.
-    // ------------------------------------------------------------------
-
+    /**
+     * Render the Hero section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_hero(array $cfg, callable $cfgstr, string $themekey): string {
         $name     = $cfgstr('name', '');
         $title    = $cfgstr('title', '');
@@ -142,6 +143,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Text section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_text(callable $cfgstr): string {
         $heading = $cfgstr('heading', '');
         $body    = $cfgstr('body', '');
@@ -159,6 +168,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Text image section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_text_image(callable $cfgstr, callable $cfgbool): string {
         $heading  = $cfgstr('heading', '');
         $body     = $cfgstr('body', '');
@@ -194,6 +211,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Gallery section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_gallery(array $cfg, callable $cfgint): string {
         $columns = $cfgint('columns', 3);
         $columns = max(1, min(4, $columns));
@@ -236,6 +261,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Skills section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_skills(array $cfg, callable $cfgstr, string $themekey): string {
         $heading = $cfgstr('heading', 'Skills');
 
@@ -284,6 +317,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Timeline section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_timeline(array $cfg, callable $cfgstr, string $themekey): string {
         $heading = $cfgstr('heading', 'Timeline');
 
@@ -349,6 +390,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Badges section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_badges(callable $cfgstr, callable $cfgbool): string {
         $heading = $cfgstr('heading', 'Badges');
         $show    = $cfgbool('show', true);
@@ -367,6 +416,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Completions section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_completions(callable $cfgstr, callable $cfgbool): string {
         $heading = $cfgstr('heading', 'Completed Courses');
         $show    = $cfgbool('show', true);
@@ -384,6 +441,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Social section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_social(array $cfg): string {
         $iconmap = [
             'linkedin'  => 'fa-linkedin',
@@ -429,6 +494,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Cta section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_cta(callable $cfgstr): string {
         $heading    = $cfgstr('heading', '');
         $body       = $cfgstr('body', '');
@@ -455,6 +528,14 @@ class section_renderer {
         return $html;
     }
 
+    /**
+     * Render the Divider section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_divider(callable $cfgstr): string {
         $style   = $cfgstr('style', 'line');
         $spacing = $cfgstr('spacing', '2rem');
@@ -466,6 +547,14 @@ class section_renderer {
             . '<hr style="border-top:1px solid #dee2e6 !important; margin:0 !important;"></div>';
     }
 
+    /**
+     * Render the Custom section.
+     *
+     * @param array $cfg Decoded configdata.
+     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     private static function render_custom(string $content, array $cfg): string {
         if ($content === '') {
             $content = $cfg['html'] ?? '';

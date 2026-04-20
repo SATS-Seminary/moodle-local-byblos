@@ -18,8 +18,6 @@ namespace local_byblos\artefact_types;
 
 use local_byblos\artefact_type;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Course completion artefact type — auto-imported completion evidence.
  *
@@ -28,7 +26,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class course_completion extends artefact_type {
-
     /**
      * Get the machine-readable type name.
      *

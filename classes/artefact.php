@@ -16,8 +16,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Artefact model — CRUD and auto-import for portfolio artefacts.
  *
@@ -30,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class artefact {
-
     /** @var string Database table name. */
     private const TABLE = 'local_byblos_artefact';
 

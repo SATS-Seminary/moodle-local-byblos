@@ -16,8 +16,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Section model — CRUD for page sections (content blocks).
  *
@@ -28,7 +26,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class section {
-
     /** @var string Database table name. */
     private const TABLE = 'local_byblos_section';
 

@@ -26,8 +26,6 @@ use local_byblos\comment;
 use local_byblos\peer;
 use local_byblos\submission;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * External functions for inline comment CRUD on submissions.
  *
@@ -45,7 +43,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class comment_external extends external_api {
-
     /**
      * Resolve the caller's role on a given submission, or throw if they have no access.
      *
@@ -89,10 +86,11 @@ class comment_external extends external_api {
         throw new \moodle_exception('error:nopermission', 'local_byblos');
     }
 
-    // ------------------------------------------------------------------
-    // add_comment
-    // ------------------------------------------------------------------
-
+    /**
+     * Parameter definition for add_comment.
+     *
+     * @return external_function_parameters
+     */
     /**
      * Parameter definition for add_comment.
      *
@@ -144,6 +142,11 @@ class comment_external extends external_api {
      *
      * @return external_single_structure
      */
+    /**
+     * Return definition for add_comment.
+     *
+     * @return external_single_structure
+     */
     public static function add_comment_returns(): external_single_structure {
         return new external_single_structure([
             'id'   => new external_value(PARAM_INT, 'New comment ID'),
@@ -151,10 +154,11 @@ class comment_external extends external_api {
         ]);
     }
 
-    // ------------------------------------------------------------------
-    // update_comment
-    // ------------------------------------------------------------------
-
+    /**
+     * Parameter definition for update_comment.
+     *
+     * @return external_function_parameters
+     */
     public static function update_comment_parameters(): external_function_parameters {
         return new external_function_parameters([
             'id'   => new external_value(PARAM_INT, 'Comment ID'),
@@ -187,14 +191,20 @@ class comment_external extends external_api {
         return ['ok' => true];
     }
 
+    /**
+     * Return definition for update_comment.
+     *
+     * @return external_single_structure
+     */
     public static function update_comment_returns(): external_single_structure {
         return new external_single_structure(['ok' => new external_value(PARAM_BOOL, 'Success')]);
     }
 
-    // ------------------------------------------------------------------
-    // delete_comment
-    // ------------------------------------------------------------------
-
+    /**
+     * Parameter definition for delete_comment.
+     *
+     * @return external_function_parameters
+     */
     public static function delete_comment_parameters(): external_function_parameters {
         return new external_function_parameters([
             'id' => new external_value(PARAM_INT, 'Comment ID'),
@@ -234,14 +244,20 @@ class comment_external extends external_api {
         return ['ok' => true];
     }
 
+    /**
+     * Return definition for delete_comment.
+     *
+     * @return external_single_structure
+     */
     public static function delete_comment_returns(): external_single_structure {
         return new external_single_structure(['ok' => new external_value(PARAM_BOOL, 'Success')]);
     }
 
-    // ------------------------------------------------------------------
-    // list_comments
-    // ------------------------------------------------------------------
-
+    /**
+     * Parameter definition for list_comments.
+     *
+     * @return external_function_parameters
+     */
     public static function list_comments_parameters(): external_function_parameters {
         return new external_function_parameters([
             'submissionid' => new external_value(PARAM_INT, 'Submission ID'),
@@ -266,7 +282,7 @@ class comment_external extends external_api {
             throw new \moodle_exception('error:submissionnotfound', 'local_byblos');
         }
 
-        // resolve_role throws if no access.
+        // Resolve the caller's role; resolve_role() throws if they have no access.
         $role = self::resolve_role($sub);
 
         $rows = comment::list_for_submission($submissionid);
@@ -391,6 +407,11 @@ class comment_external extends external_api {
         return ((float) $grade->grade) !== -1.0;
     }
 
+    /**
+     * Return definition for list_comments.
+     *
+     * @return external_single_structure
+     */
     public static function list_comments_returns(): external_multiple_structure {
         return new external_multiple_structure(
             new external_single_structure([

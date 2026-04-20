@@ -16,8 +16,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Peer-review model — maps reviewers to reviewees for an assignment.
  *
@@ -31,7 +29,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class peer {
-
     /** @var string Database table. */
     private const TABLE = 'local_byblos_peer_assignment';
 
@@ -269,7 +266,7 @@ class peer {
         $definition = $DB->get_record('grading_definitions', [
             'areaid' => $gm->get_area_id(),
             'method' => 'rubric',
-            'status' => 20, // gradingform_controller::DEFINITION_STATUS_READY.
+            'status' => 20, // Ready; value of gradingform_controller::DEFINITION_STATUS_READY.
         ]);
         if (!$definition) {
             return null;

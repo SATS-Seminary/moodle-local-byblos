@@ -80,7 +80,7 @@ $functions = [
         'capabilities' => 'local/byblos:createpage',
     ],
 
-    // ---- Assessment: inline comments ------------------------------------
+    // Assessment: inline comments.
 
     'local_byblos_add_comment' => [
         'classname'    => \local_byblos\external\comment_external::class,
@@ -114,7 +114,7 @@ $functions = [
         'ajax'         => true,
     ],
 
-    // ---- Assessment: peer review submission ------------------------------
+    // Assessment: peer review submission.
 
     'local_byblos_submit_peer_review' => [
         'classname'    => \local_byblos\external\peer_review_external::class,
@@ -124,7 +124,7 @@ $functions = [
         'ajax'         => true,
     ],
 
-    // ---- Phase 5: advisory assessment checklist -------------------------
+    // Phase 5: advisory assessment checklist.
 
     'local_byblos_get_assignment_checklists' => [
         'classname'    => \local_byblos\external\checklist_external::class,
@@ -136,7 +136,7 @@ $functions = [
         'capabilities' => 'local/byblos:createpage',
     ],
 
-    // ---- Artefact picker -------------------------------------------------
+    // Artefact picker.
 
     'local_byblos_list_artefacts' => [
         'classname'    => \local_byblos\external\artefact_external::class,
@@ -147,7 +147,7 @@ $functions = [
         'capabilities' => 'local/byblos:use',
     ],
 
-    // ---- Collection / multi-page portfolio navigation -------------------
+    // Collection / multi-page portfolio navigation.
 
     'local_byblos_list_user_collections' => [
         'classname'    => \local_byblos\external\collection_external::class,
@@ -198,7 +198,7 @@ $functions = [
     'local_byblos_create_collection' => [
         'classname'    => \local_byblos\external\collection_external::class,
         'methodname'   => 'create_collection',
-        'description'  => 'Create a new collection for the current user, optionally adding a page to it or binding it to a Moodle group.',
+        'description'  => 'Create a collection for the current user; optionally adds a page and/or binds to a Moodle group.',
         'type'         => 'write',
         'ajax'         => true,
         'capabilities' => 'local/byblos:use',

@@ -39,6 +39,8 @@ require(__DIR__ . '/../../../config.php');
 global $CFG, $DB, $USER;
 
 require_once($CFG->dirroot . '/user/lib.php');
+
+// phpcs:disable moodle.Files.LineLength -- seed rows include long prose strings.
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/enrollib.php');
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
@@ -487,9 +489,9 @@ function seed_submit(\stdClass $assign, int $userid, int $pageid): int {
     return $byblossubid;
 }
 
-// ============================================================================
+// Script entry.
 // Run.
-// ============================================================================
+// Script entry.
 
 // Avoid CLI-auth prompts — execute as admin.
 $admin = get_admin();
@@ -502,10 +504,10 @@ seed_log('--- Byblos test-data seed starting ---');
 
 // 1. Users.
 $students = [
-    ['byblos_student_1', 'Amara',  'Okafor',   'amara@example.test'],
-    ['byblos_student_2', 'Ben',    'Schneider', 'ben@example.test'],
-    ['byblos_student_3', 'Chidi',  'Anyanwu',  'chidi@example.test'],
-    ['byblos_student_4', 'Dana',   'Mbeki',    'dana@example.test'],
+    ['byblos_student_1', 'Amara', 'Okafor', 'amara@example.test'],
+    ['byblos_student_2', 'Ben', 'Schneider', 'ben@example.test'],
+    ['byblos_student_3', 'Chidi', 'Anyanwu', 'chidi@example.test'],
+    ['byblos_student_4', 'Dana', 'Mbeki', 'dana@example.test'],
 ];
 $studentids = [];
 foreach ($students as [$uname, $fn, $ln, $email]) {

@@ -34,7 +34,7 @@ use local_byblos\event\page_shared;
 require_login();
 
 $id   = required_param('id', PARAM_INT);
-$type = required_param('type', PARAM_ALPHA); // 'page' or 'collection'.
+$type = required_param('type', PARAM_ALPHA); // Page or collection.
 
 $context = context_system::instance();
 require_capability('local/byblos:share', $context);
@@ -118,10 +118,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $pageid_or_0 = ($type === 'page') ? $id : 0;
-        $collectionid_or_0 = ($type === 'collection') ? $id : 0;
+        $pageid = ($type === 'page') ? $id : 0;
+        $collectionid = ($type === 'collection') ? $id : 0;
 
-        $shareid = share::create($pageid_or_0, $collectionid_or_0, $sharetype, $sharevalue);
+        $shareid = share::create($pageid, $collectionid, $sharetype, $sharevalue);
 
         // Fire the page_shared event.
         $eventdata = [
@@ -131,8 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'other'    => [
                 'sharetype'  => $sharetype,
                 'sharevalue' => $sharevalue,
-                'pageid'     => $pageid_or_0,
-                'collectionid' => $collectionid_or_0,
+                'pageid'     => $pageid,
+                'collectionid' => $collectionid,
             ],
         ];
         $event = page_shared::create($eventdata);

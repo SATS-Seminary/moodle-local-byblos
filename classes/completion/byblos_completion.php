@@ -32,8 +32,6 @@ namespace local_byblos\completion;
 
 use local_byblos\event\page_created;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Observer that checks portfolio page count against a completion threshold.
  *
@@ -42,7 +40,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class byblos_completion {
-
     /**
      * Handle the page_created event.
      *

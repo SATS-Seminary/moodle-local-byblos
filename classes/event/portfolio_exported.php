@@ -27,8 +27,6 @@ namespace local_byblos\event;
 use core\event\base;
 use moodle_url;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Fired when a user exports a portfolio page or collection.
  *
@@ -37,7 +35,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class portfolio_exported extends base {
-
     /**
      * Initialise the event.
      *

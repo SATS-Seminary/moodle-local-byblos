@@ -16,8 +16,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Share model — sharing and access-control for pages and collections.
  *
@@ -32,7 +30,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class share {
-
     /** @var string Database table name. */
     private const TABLE = 'local_byblos_share';
 
@@ -43,18 +40,18 @@ class share {
      * Create a new share record.
      *
      * For public shares a random token is generated automatically.
-     * Either $pageid_or_0 or $collectionid_or_0 should be non-zero
+     * Either $pageid or $collectionid should be non-zero
      * (not both zero, not both non-zero).
      *
-     * @param int    $pageid_or_0       Page ID, or 0 if sharing a collection.
-     * @param int    $collectionid_or_0 Collection ID, or 0 if sharing a page.
+     * @param int    $pageid       Page ID, or 0 if sharing a collection.
+     * @param int    $collectionid Collection ID, or 0 if sharing a page.
      * @param string $sharetype         One of: public, user, course, group.
      * @param string $sharevalue        Type-specific value (userid, courseid, groupid, or empty).
      * @return int Newly created share ID.
      */
     public static function create(
-        int $pageid_or_0,
-        int $collectionid_or_0,
+        int $pageid,
+        int $collectionid,
         string $sharetype,
         string $sharevalue = '',
     ): int {
@@ -67,8 +64,8 @@ class share {
 
         $now = time();
         $record = (object) [
-            'pageid'       => $pageid_or_0,
-            'collectionid' => $collectionid_or_0,
+            'pageid'       => $pageid,
+            'collectionid' => $collectionid,
             'sharetype'    => $sharetype,
             'sharevalue'   => $sharevalue,
             'token'        => $token,
@@ -150,9 +147,11 @@ class share {
         }
 
         // Direct user share.
-        if ($DB->record_exists(self::TABLE, [
+        if (
+            $DB->record_exists(self::TABLE, [
             'pageid' => $pageid, 'sharetype' => 'user', 'sharevalue' => (string) $userid,
-        ])) {
+            ])
+        ) {
             return true;
         }
 
@@ -217,9 +216,11 @@ class share {
         }
 
         // Direct user share.
-        if ($DB->record_exists(self::TABLE, [
+        if (
+            $DB->record_exists(self::TABLE, [
             'collectionid' => $collectionid, 'sharetype' => 'user', 'sharevalue' => (string) $userid,
-        ])) {
+            ])
+        ) {
             return true;
         }
 

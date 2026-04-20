@@ -26,7 +26,6 @@ namespace local_byblos;
  * @covers     \local_byblos\share
  */
 final class share_test extends \advanced_testcase {
-
     /**
      * Owner can always view their own page.
      */

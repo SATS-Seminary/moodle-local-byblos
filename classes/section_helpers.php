@@ -28,8 +28,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Renders the academic section types (chart, cloud, quote, stats, citations).
  *
@@ -39,7 +37,6 @@ defined('MOODLE_INTERNAL') || die();
  * authors can still hook further customisations.
  */
 class section_helpers {
-
     /**
      * Parse a hex colour (#rrggbb or #rgb) into an array of 0–255 RGB integers.
      *
@@ -97,10 +94,7 @@ class section_helpers {
         $b2 = $b + $sign * (int) ($step * 0.3);
         return self::rgb_to_hex($r2, $g2, $b2);
     }
-
-    // ------------------------------------------------------------------
-    // CHART
-    // ------------------------------------------------------------------
+    // Chart section.
 
     /**
      * Render a server-side SVG chart (bar, line, pie, donut).
@@ -363,10 +357,7 @@ class section_helpers {
         $svg .= '</svg>';
         return '<div class="byblos-chart-canvas">' . $svg . '</div>';
     }
-
-    // ------------------------------------------------------------------
-    // CLOUD
-    // ------------------------------------------------------------------
+    // Cloud section.
 
     /**
      * Render a word cloud as a flex-wrapped span list with deterministic per-word sizing.
@@ -424,10 +415,7 @@ class section_helpers {
 
         return $html;
     }
-
-    // ------------------------------------------------------------------
-    // QUOTE
-    // ------------------------------------------------------------------
+    // Quote section.
 
     /**
      * Render a pull-quote with attribution (optionally linked to a source URL).
@@ -474,10 +462,7 @@ class section_helpers {
         $html .= '</div>';
         return $html;
     }
-
-    // ------------------------------------------------------------------
-    // STATS
-    // ------------------------------------------------------------------
+    // Stats section.
 
     /**
      * Render a row of 2–4 big-number stat cards.
@@ -543,10 +528,7 @@ class section_helpers {
         $html .= '</div>';
         return $html;
     }
-
-    // ------------------------------------------------------------------
-    // CITATIONS
-    // ------------------------------------------------------------------
+    // Citations section.
 
     /**
      * Render a numbered academic bibliography.
@@ -924,22 +906,24 @@ class section_helpers {
             return $input;
         }
 
-        // youtu.be short form.
+        // Match: youtu.be short form.
         if (preg_match('~^https?://youtu\.be/([A-Za-z0-9_-]{11})~i', $input, $m)) {
             return $m[1];
         }
 
-        // youtube.com/watch?v=ID
+        // Match: youtube.com/watch?v=ID.
         if (preg_match('~[?&]v=([A-Za-z0-9_-]{11})~', $input, $m)) {
             return $m[1];
         }
 
-        // youtube.com/embed/ID, /shorts/ID, /live/ID, /v/ID
-        if (preg_match(
-            '~^https?://(?:www\.)?youtube\.com/(?:embed|shorts|live|v)/([A-Za-z0-9_-]{11})~i',
-            $input,
-            $m
-        )) {
+        // Match: youtube.com/embed/ID, /shorts/ID, /live/ID, /v/ID.
+        if (
+            preg_match(
+                '~^https?://(?:www\.)?youtube\.com/(?:embed|shorts|live|v)/([A-Za-z0-9_-]{11})~i',
+                $input,
+                $m
+            )
+        ) {
             return $m[1];
         }
 
@@ -1047,7 +1031,7 @@ class section_helpers {
             }
             $html .= '</div>';
         } else {
-            // full width — video first, then body below.
+            // Full width — video first, then body below.
             $html .= '<div class="byblos-youtube-media">' . $frame . $captionhtml . '</div>';
             if ($bodyhtml !== '') {
                 $html .= '<div style="margin-top:1.75rem !important;">' . $bodyhtml . '</div>';
@@ -1057,10 +1041,7 @@ class section_helpers {
         $html .= '</div>';
         return $html;
     }
-
-    // ------------------------------------------------------------------
-    // PAGENAV
-    // ------------------------------------------------------------------
+    // Pagenav section.
 
     /**
      * Render a page-navigation widget.

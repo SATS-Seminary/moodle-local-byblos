@@ -23,8 +23,6 @@ use core_external\external_value;
 use context_system;
 use local_byblos\peer;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * External functions for the peer review submission workflow.
  *
@@ -38,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class peer_review_external extends external_api {
-
     /**
      * Parameter definition for submit_peer_review.
      *

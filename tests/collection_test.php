@@ -25,7 +25,6 @@ namespace local_byblos;
  * @covers     \local_byblos\collection
  */
 final class collection_test extends \advanced_testcase {
-
     /**
      * The first page added becomes primary for that page automatically.
      */
@@ -48,18 +47,18 @@ final class collection_test extends \advanced_testcase {
     public function test_set_primary_for_page_moves_flag(): void {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
-        $cA = collection::create((int) $user->id, 'A');
-        $cB = collection::create((int) $user->id, 'B');
+        $colla = collection::create((int) $user->id, 'A');
+        $collb = collection::create((int) $user->id, 'B');
         $pageid = page::create((int) $user->id, 'P');
 
-        collection::add_page($cA, $pageid, 0);
-        collection::add_page($cB, $pageid, 0);
+        collection::add_page($colla, $pageid, 0);
+        collection::add_page($collb, $pageid, 0);
 
         // A was added first, so it is the initial primary.
-        $this->assertSame($cA, (int) collection::get_primary_for_page($pageid)->id);
+        $this->assertSame($colla, (int) collection::get_primary_for_page($pageid)->id);
 
-        collection::set_primary_for_page($pageid, $cB);
-        $this->assertSame($cB, (int) collection::get_primary_for_page($pageid)->id);
+        collection::set_primary_for_page($pageid, $collb);
+        $this->assertSame($collb, (int) collection::get_primary_for_page($pageid)->id);
     }
 
     /**

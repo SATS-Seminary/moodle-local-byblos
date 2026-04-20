@@ -31,3 +31,5 @@ deploy.sh
 # moodle-plugin-ci artefacts
 moodle/
 ci/
+
+.claude/

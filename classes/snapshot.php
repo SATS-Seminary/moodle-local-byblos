@@ -16,8 +16,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Snapshot model — freeze a page (and its sections) at a moment in time.
  *
@@ -29,7 +27,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class snapshot {
-
     /** @var string Database table name. */
     private const TABLE = 'local_byblos_snapshot';
 
@@ -103,6 +100,8 @@ class snapshot {
     }
 
     /**
+     * Reduce a page record to the subset we serialise into a snapshot payload.
+     *
      * @param \stdClass $pagerec Page record.
      * @return array Extracted page row.
      */
@@ -121,6 +120,8 @@ class snapshot {
     }
 
     /**
+     * Pull all sections for a page into the lightweight array shape snapshots store.
+     *
      * @param int $pageid Page ID.
      * @return array Section rows for the page.
      */

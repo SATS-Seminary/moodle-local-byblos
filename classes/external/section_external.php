@@ -26,8 +26,6 @@ use local_byblos\page;
 use local_byblos\section;
 use local_byblos\section_renderer;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * External functions for section CRUD in the portfolio page editor.
  *
@@ -39,10 +37,7 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class section_external extends external_api {
-
-    // ------------------------------------------------------------------
     // Shared helpers.
-    // ------------------------------------------------------------------
 
     /**
      * Valid section types matching MoodleGo definitions.
@@ -95,10 +90,6 @@ class section_external extends external_api {
         $page = self::require_page_owner((int) $sec->pageid);
         return [$sec, $page];
     }
-
-    // ------------------------------------------------------------------
-    // add_section
-    // ------------------------------------------------------------------
 
     /**
      * Parameters for add_section.
@@ -180,10 +171,6 @@ class section_external extends external_api {
         ]);
     }
 
-    // ------------------------------------------------------------------
-    // update_section
-    // ------------------------------------------------------------------
-
     /**
      * Parameters for update_section.
      *
@@ -245,10 +232,6 @@ class section_external extends external_api {
         ]);
     }
 
-    // ------------------------------------------------------------------
-    // delete_section
-    // ------------------------------------------------------------------
-
     /**
      * Parameters for delete_section.
      *
@@ -288,10 +271,6 @@ class section_external extends external_api {
             'success' => new external_value(PARAM_BOOL, 'True on success'),
         ]);
     }
-
-    // ------------------------------------------------------------------
-    // reorder_sections
-    // ------------------------------------------------------------------
 
     /**
      * Parameters for reorder_sections.
@@ -350,10 +329,6 @@ class section_external extends external_api {
             'success' => new external_value(PARAM_BOOL, 'True on success'),
         ]);
     }
-
-    // ------------------------------------------------------------------
-    // save_page_settings
-    // ------------------------------------------------------------------
 
     /**
      * Parameters for save_page_settings.
@@ -428,10 +403,7 @@ class section_external extends external_api {
             'success' => new external_value(PARAM_BOOL, 'True on success'),
         ]);
     }
-
-    // ------------------------------------------------------------------
     // Default configdata helper.
-    // ------------------------------------------------------------------
 
     /**
      * Return default configdata JSON for a section type.
@@ -442,6 +414,7 @@ class section_external extends external_api {
      * @return string JSON string.
      */
     private static function default_config_for_type(string $stype): string {
+        // phpcs:disable moodle.Files.LineLength
         $defaults = [
             'hero'        => '{"name":"Your Name","title":"Your Title","subtitle":"A short tagline","bg_color":"#2c3e50","bg_image":"","photo_url":""}',
             'text'        => '{"heading":"Section Heading","body":"<p>Add your content here...</p>"}',
@@ -464,6 +437,7 @@ class section_external extends external_api {
             'youtube'     => '{"heading":"","url":"","description":"","start":0,"alignment":"full","body":""}',
             'pagenav'     => '{"heading":"Related pages","source":"collection","collectionid":0,"pageids":[],"display":"pills","show_descriptions":false}',
         ];
+        // phpcs:enable moodle.Files.LineLength
 
         return $defaults[$stype] ?? '{}';
     }

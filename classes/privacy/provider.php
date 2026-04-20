@@ -31,8 +31,6 @@ use core_privacy\local\request\contextlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy provider for local_byblos.
  *
@@ -45,9 +43,8 @@ defined('MOODLE_INTERNAL') || die();
  */
 class provider implements
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\plugin\provider,
-    \core_privacy\local\request\core_userlist_provider {
-
+    \core_privacy\local\request\core_userlist_provider,
+    \core_privacy\local\request\plugin\provider {
     /**
      * Describe the personal data stored by this plugin.
      *
@@ -335,7 +332,7 @@ class provider implements
         // Sections depend on pages.
         $pageids = $DB->get_fieldset_select('local_byblos_page', 'id', '1=1');
         if ($pageids) {
-            list($insql, $params) = $DB->get_in_or_equal($pageids);
+            [$insql, $params] = $DB->get_in_or_equal($pageids);
             $DB->delete_records_select('local_byblos_section', "pageid {$insql}", $params);
             $DB->delete_records_select('local_byblos_share', "pageid {$insql}", $params);
             $DB->delete_records_select('local_byblos_page_course', "pageid {$insql}", $params);
@@ -344,7 +341,7 @@ class provider implements
 
         $collectionids = $DB->get_fieldset_select('local_byblos_collection', 'id', '1=1');
         if ($collectionids) {
-            list($insql, $params) = $DB->get_in_or_equal($collectionids);
+            [$insql, $params] = $DB->get_in_or_equal($collectionids);
             $DB->delete_records_select('local_byblos_collection_page', "collectionid {$insql}", $params);
             $DB->delete_records_select('local_byblos_share', "collectionid {$insql}", $params);
             $DB->delete_records_select('local_byblos_submission', "collectionid {$insql}", $params);
@@ -406,7 +403,7 @@ class provider implements
         // Get user's page IDs to clean up dependent records.
         $pageids = $DB->get_fieldset_select('local_byblos_page', 'id', 'userid = ?', [$userid]);
         if ($pageids) {
-            list($insql, $params) = $DB->get_in_or_equal($pageids);
+            [$insql, $params] = $DB->get_in_or_equal($pageids);
             $DB->delete_records_select('local_byblos_section', "pageid {$insql}", $params);
             $DB->delete_records_select('local_byblos_share', "pageid {$insql}", $params);
             $DB->delete_records_select('local_byblos_page_course', "pageid {$insql}", $params);
@@ -415,7 +412,7 @@ class provider implements
         // Get user's collection IDs to clean up dependent records.
         $collectionids = $DB->get_fieldset_select('local_byblos_collection', 'id', 'userid = ?', [$userid]);
         if ($collectionids) {
-            list($insql, $params) = $DB->get_in_or_equal($collectionids);
+            [$insql, $params] = $DB->get_in_or_equal($collectionids);
             $DB->delete_records_select('local_byblos_collection_page', "collectionid {$insql}", $params);
             $DB->delete_records_select('local_byblos_share', "collectionid {$insql}", $params);
         }

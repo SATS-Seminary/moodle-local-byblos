@@ -25,8 +25,6 @@ use context_system;
 use local_byblos\collection;
 use local_byblos\page;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * External functions for the multi-page portfolio collection feature.
  *
@@ -39,7 +37,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class collection_external extends external_api {
-
     /**
      * Ensure the given collection exists and belongs to the current user.
      *
@@ -84,10 +81,6 @@ class collection_external extends external_api {
         $primary = collection::get_primary_for_page($pageid);
         return $primary ? (int) $primary->id : 0;
     }
-
-    // ------------------------------------------------------------------
-    // list_user_collections
-    // ------------------------------------------------------------------
 
     /**
      * Parameter definition for list_user_collections.
@@ -191,10 +184,6 @@ class collection_external extends external_api {
         );
     }
 
-    // ------------------------------------------------------------------
-    // list_user_pages
-    // ------------------------------------------------------------------
-
     /**
      * Parameter definition for list_user_pages.
      *
@@ -270,10 +259,6 @@ class collection_external extends external_api {
         );
     }
 
-    // ------------------------------------------------------------------
-    // add_page_to_collection
-    // ------------------------------------------------------------------
-
     /**
      * Parameter definition for add_page_to_collection.
      *
@@ -334,10 +319,6 @@ class collection_external extends external_api {
             'primary_collectionid' => new external_value(PARAM_INT, 'Primary collection ID after op (0 if none)'),
         ]);
     }
-
-    // ------------------------------------------------------------------
-    // remove_page_from_collection
-    // ------------------------------------------------------------------
 
     /**
      * Parameter definition for remove_page_from_collection.
@@ -415,10 +396,6 @@ class collection_external extends external_api {
         ]);
     }
 
-    // ------------------------------------------------------------------
-    // set_primary_collection
-    // ------------------------------------------------------------------
-
     /**
      * Parameter definition for set_primary_collection.
      *
@@ -470,10 +447,6 @@ class collection_external extends external_api {
             'primary_collectionid' => new external_value(PARAM_INT, 'Primary collection ID after op (0 if none)'),
         ]);
     }
-
-    // ------------------------------------------------------------------
-    // create_collection
-    // ------------------------------------------------------------------
 
     /**
      * Parameter definition for create_collection.
@@ -541,7 +514,7 @@ class collection_external extends external_api {
         $primarycollectionid = 0;
         if ($addpageid > 0) {
             self::require_owned_page($addpageid);
-            // add_page auto-marks primary when this is the page's first collection.
+            // Add_page() auto-marks primary when this is the page's first collection.
             collection::add_page($collectionid, $addpageid, 0, false);
             $primarycollectionid = self::primary_id_for_page($addpageid);
         }
@@ -563,10 +536,6 @@ class collection_external extends external_api {
             'primary_collectionid' => new external_value(PARAM_INT, 'Primary collection ID for the added page (0 if none)'),
         ]);
     }
-
-    // ------------------------------------------------------------------
-    // list_user_groups
-    // ------------------------------------------------------------------
 
     /**
      * Parameter definition for list_user_groups.

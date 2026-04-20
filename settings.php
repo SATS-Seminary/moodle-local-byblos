@@ -25,7 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-
     $settings = new admin_settingpage('local_byblos', get_string('pluginname', 'local_byblos'));
 
     // Enable/disable the plugin.

@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Extends the global navigation tree to add "My Portfolio" to the user menu.
  *
@@ -229,12 +227,9 @@ function local_byblos_extend_settings_navigation(settings_navigation $settingsna
     if (!$modsettings) {
         return;
     }
-
-    // ------------------------------------------------------------------
     // Student-reviewer branch — show "My peer reviews" if the current user
     // has any peer_assignment rows on this assignment. Count includes both
     // pending and complete so reviewers can revisit comments they've left.
-    // ------------------------------------------------------------------
     $reviewerrows = $DB->get_records('local_byblos_peer_assignment', [
         'assignmentid' => $assignid,
         'reviewerid'   => $USER->id,
@@ -264,10 +259,7 @@ function local_byblos_extend_settings_navigation(settings_navigation $settingsna
         );
         $mynode->showinflatnavigation = true;
     }
-
-    // ------------------------------------------------------------------
     // Teacher branch — "Manage peer reviewers" for graders.
-    // ------------------------------------------------------------------
     if (!has_capability('mod/assign:grade', $context)) {
         return;
     }

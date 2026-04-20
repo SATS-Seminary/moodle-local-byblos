@@ -129,7 +129,7 @@ foreach ($colpages as $i => $p) {
     ];
 }
 
-// "Preview collection" lands on the first page (sortorder) in viewer/preview layout.
+// The Preview-collection button lands on the first page (sortorder) in viewer/preview layout.
 $previewurl = '';
 if (!empty($colpages)) {
     $previewurl = (new moodle_url(

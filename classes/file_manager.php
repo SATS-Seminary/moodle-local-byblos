@@ -20,8 +20,6 @@ use context_user;
 use moodle_url;
 use stored_file;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * File manager — helper class for image upload / retrieval / deletion.
  *
@@ -33,7 +31,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class file_manager {
-
     /** @var string Component name used in file_storage. */
     public const COMPONENT = 'local_byblos';
 

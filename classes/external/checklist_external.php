@@ -25,8 +25,6 @@ use context_system;
 use local_byblos\assignment_finder;
 use local_byblos\page;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * External functions exposing advisory assessment checklists to the editor.
  *
@@ -39,7 +37,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class checklist_external extends external_api {
-
     /**
      * Parameter definition for get_assignment_checklists.
      *

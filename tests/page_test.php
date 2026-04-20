@@ -25,7 +25,6 @@ namespace local_byblos;
  * @covers     \local_byblos\page
  */
 final class page_test extends \advanced_testcase {
-
     /**
      * create() should insert a draft page owned by the given user.
      */

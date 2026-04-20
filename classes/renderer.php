@@ -24,8 +24,6 @@
 
 namespace local_byblos;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Renders portfolio pages by iterating over sections and applying theme styling.
  *
@@ -33,7 +31,6 @@ defined('MOODLE_INTERNAL') || die();
  * using Bootstrap 4 grid classes. The page wrapper applies the theme CSS class.
  */
 class renderer {
-
     /**
      * Renders a complete portfolio page.
      *
@@ -258,7 +255,8 @@ class renderer {
         if ($body !== '') {
             $html .= \html_writer::div($body, 'byblos-text-body');
         } else {
-            $html .= \html_writer::tag('p',
+            $html .= \html_writer::tag(
+                'p',
                 \html_writer::tag('em', get_string('emptytext', 'local_byblos')),
                 ['class' => 'text-muted']
             );
@@ -332,7 +330,8 @@ class renderer {
         $html = '';
         if (empty($items)) {
             $html .= \html_writer::div(
-                \html_writer::tag('p',
+                \html_writer::tag(
+                    'p',
                     \html_writer::tag('em', get_string('emptygallery', 'local_byblos')),
                     ['class' => 'text-muted text-center py-3']
                 ),
@@ -387,7 +386,8 @@ class renderer {
         }
 
         if (empty($skills)) {
-            $html .= \html_writer::tag('p',
+            $html .= \html_writer::tag(
+                'p',
                 \html_writer::tag('em', get_string('noskills', 'local_byblos')),
                 ['class' => 'text-muted']
             );
@@ -436,7 +436,8 @@ class renderer {
         }
 
         if (empty($items)) {
-            $html .= \html_writer::tag('p',
+            $html .= \html_writer::tag(
+                'p',
                 \html_writer::tag('em', get_string('notimeline', 'local_byblos')),
                 ['class' => 'text-muted']
             );
@@ -497,7 +498,8 @@ class renderer {
         $badges = $DB->get_records_sql($sql, ['userid' => $userid]);
 
         if (empty($badges)) {
-            $html .= \html_writer::tag('p',
+            $html .= \html_writer::tag(
+                'p',
                 \html_writer::tag('em', get_string('nobadges', 'local_byblos')),
                 ['class' => 'text-muted']
             );
@@ -508,7 +510,11 @@ class renderer {
                     \html_writer::tag('i', '', ['class' => 'fa fa-certificate fa-3x text-warning mb-2 d-block']) .
                     \html_writer::tag('h6', s($badge->name), ['class' => 'card-title mb-1']) .
                     (!empty($badge->description)
-                        ? \html_writer::tag('p', s(shorten_text($badge->description, 80)), ['class' => 'card-text text-muted small mb-0'])
+                        ? \html_writer::tag(
+                            'p',
+                            s(shorten_text($badge->description, 80)),
+                            ['class' => 'card-text text-muted small mb-0']
+                        )
                         : ''),
                     'card-body'
                 );
@@ -557,7 +563,8 @@ class renderer {
         $completions = $DB->get_records_sql($sql, ['userid' => $userid]);
 
         if (empty($completions)) {
-            $html .= \html_writer::tag('p',
+            $html .= \html_writer::tag(
+                'p',
                 \html_writer::tag('em', get_string('nocompletions', 'local_byblos')),
                 ['class' => 'text-muted']
             );
@@ -566,7 +573,8 @@ class renderer {
             foreach ($completions as $completion) {
                 $datestr = userdate($completion->timecompleted, get_string('strftimedatefull', 'langconfig'));
                 $card = \html_writer::div(
-                    \html_writer::tag('h6',
+                    \html_writer::tag(
+                        'h6',
                         \html_writer::tag('i', '', ['class' => 'fa fa-graduation-cap text-success']) .
                         ' ' . s($completion->fullname),
                         ['class' => 'card-title']
@@ -616,7 +624,8 @@ class renderer {
 
         $html = '';
         if (!$haslinks) {
-            $html .= \html_writer::tag('p',
+            $html .= \html_writer::tag(
+                'p',
                 \html_writer::tag('em', get_string('nosocial', 'local_byblos')),
                 ['class' => 'text-muted']
             );
@@ -675,7 +684,10 @@ class renderer {
         }
 
         return \html_writer::div($inner, 'byblos-section-cta text-center', [
-            'style' => "background-color:" . s($bgcolor) . " !important; color:#fff !important; padding:2.5rem 2rem !important; border-radius:0.5rem !important;",
+            'style' => 'background-color:' . s($bgcolor) . ' !important;'
+                . ' color:#fff !important;'
+                . ' padding:2.5rem 2rem !important;'
+                . ' border-radius:0.5rem !important;',
         ]);
     }
 

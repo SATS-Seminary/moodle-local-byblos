@@ -25,8 +25,6 @@ use context_system;
 use context_user;
 use moodle_url;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * External functions for the artefact picker.
  *
@@ -38,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class artefact_external extends external_api {
-
     /**
      * Valid artefact types accepted by the typefilter argument.
      */
@@ -212,7 +209,8 @@ class artefact_external extends external_api {
                 return self::artefact_php_url((int) $record->id);
 
             case 'course_completion':
-                if (preg_match('/^course:(\d+)$/', $sourceref, $m)
+                if (
+                    preg_match('/^course:(\d+)$/', $sourceref, $m)
                     || preg_match('/^course_completion:(\d+)$/', $sourceref, $m)
                 ) {
                     $courseurl = new moodle_url('/course/view.php', ['id' => (int) $m[1]]);

@@ -77,29 +77,31 @@ foreach ($sections as $idx => $sec) {
     ];
 }
 
-// Section type definitions for the picker (12 types from MoodleGo).
+// Section type definitions for the picker (each row is a compact tuple of name + description lookups).
+// phpcs:disable moodle.Files.LineLength
 $sectiontypes = [
-    ['type' => 'hero',        'name' => get_string('sectiontype_hero', 'local_byblos'),        'description' => get_string('sectiontype_hero_desc', 'local_byblos'),        'icon' => 'fa-picture-o'],
-    ['type' => 'text',        'name' => get_string('sectiontype_text', 'local_byblos'),        'description' => get_string('sectiontype_text_desc', 'local_byblos'),        'icon' => 'fa-file-text'],
-    ['type' => 'text_image',  'name' => get_string('sectiontype_text_image', 'local_byblos'),  'description' => get_string('sectiontype_text_image_desc', 'local_byblos'),  'icon' => 'fa-columns'],
-    ['type' => 'gallery',     'name' => get_string('sectiontype_gallery', 'local_byblos'),     'description' => get_string('sectiontype_gallery_desc', 'local_byblos'),     'icon' => 'fa-th'],
-    ['type' => 'skills',      'name' => get_string('sectiontype_skills', 'local_byblos'),      'description' => get_string('sectiontype_skills_desc', 'local_byblos'),      'icon' => 'fa-bar-chart'],
-    ['type' => 'timeline',    'name' => get_string('sectiontype_timeline', 'local_byblos'),    'description' => get_string('sectiontype_timeline_desc', 'local_byblos'),    'icon' => 'fa-clock-o'],
-    ['type' => 'badges',      'name' => get_string('sectiontype_badges', 'local_byblos'),      'description' => get_string('sectiontype_badges_desc', 'local_byblos'),      'icon' => 'fa-certificate'],
+    ['type' => 'hero', 'name' => get_string('sectiontype_hero', 'local_byblos'), 'description' => get_string('sectiontype_hero_desc', 'local_byblos'), 'icon' => 'fa-picture-o'],
+    ['type' => 'text', 'name' => get_string('sectiontype_text', 'local_byblos'), 'description' => get_string('sectiontype_text_desc', 'local_byblos'), 'icon' => 'fa-file-text'],
+    ['type' => 'text_image', 'name' => get_string('sectiontype_text_image', 'local_byblos'), 'description' => get_string('sectiontype_text_image_desc', 'local_byblos'), 'icon' => 'fa-columns'],
+    ['type' => 'gallery', 'name' => get_string('sectiontype_gallery', 'local_byblos'), 'description' => get_string('sectiontype_gallery_desc', 'local_byblos'), 'icon' => 'fa-th'],
+    ['type' => 'skills', 'name' => get_string('sectiontype_skills', 'local_byblos'), 'description' => get_string('sectiontype_skills_desc', 'local_byblos'), 'icon' => 'fa-bar-chart'],
+    ['type' => 'timeline', 'name' => get_string('sectiontype_timeline', 'local_byblos'), 'description' => get_string('sectiontype_timeline_desc', 'local_byblos'), 'icon' => 'fa-clock-o'],
+    ['type' => 'badges', 'name' => get_string('sectiontype_badges', 'local_byblos'), 'description' => get_string('sectiontype_badges_desc', 'local_byblos'), 'icon' => 'fa-certificate'],
     ['type' => 'completions', 'name' => get_string('sectiontype_completions', 'local_byblos'), 'description' => get_string('sectiontype_completions_desc', 'local_byblos'), 'icon' => 'fa-graduation-cap'],
-    ['type' => 'social',      'name' => get_string('sectiontype_social', 'local_byblos'),      'description' => get_string('sectiontype_social_desc', 'local_byblos'),      'icon' => 'fa-share-alt'],
-    ['type' => 'cta',         'name' => get_string('sectiontype_cta', 'local_byblos'),         'description' => get_string('sectiontype_cta_desc', 'local_byblos'),         'icon' => 'fa-bullhorn'],
-    ['type' => 'divider',     'name' => get_string('sectiontype_divider', 'local_byblos'),     'description' => get_string('sectiontype_divider_desc', 'local_byblos'),     'icon' => 'fa-minus'],
-    ['type' => 'custom',      'name' => get_string('sectiontype_custom', 'local_byblos'),      'description' => get_string('sectiontype_custom_desc', 'local_byblos'),      'icon' => 'fa-code'],
-    ['type' => 'chart',       'name' => get_string('sectiontype_chart', 'local_byblos'),       'description' => get_string('sectiontype_chart_desc', 'local_byblos'),       'icon' => 'fa-bar-chart'],
-    ['type' => 'cloud',       'name' => get_string('sectiontype_cloud', 'local_byblos'),       'description' => get_string('sectiontype_cloud_desc', 'local_byblos'),       'icon' => 'fa-cloud'],
-    ['type' => 'quote',       'name' => get_string('sectiontype_quote', 'local_byblos'),       'description' => get_string('sectiontype_quote_desc', 'local_byblos'),       'icon' => 'fa-quote-left'],
-    ['type' => 'stats',       'name' => get_string('sectiontype_stats', 'local_byblos'),       'description' => get_string('sectiontype_stats_desc', 'local_byblos'),       'icon' => 'fa-pie-chart'],
-    ['type' => 'citations',   'name' => get_string('sectiontype_citations', 'local_byblos'),   'description' => get_string('sectiontype_citations_desc', 'local_byblos'),   'icon' => 'fa-book'],
-    ['type' => 'files',       'name' => get_string('sectiontype_files', 'local_byblos'),       'description' => get_string('sectiontype_files_desc', 'local_byblos'),       'icon' => 'fa-folder-open-o'],
-    ['type' => 'youtube',     'name' => get_string('sectiontype_youtube', 'local_byblos'),     'description' => get_string('sectiontype_youtube_desc', 'local_byblos'),     'icon' => 'fa-youtube-play'],
-    ['type' => 'pagenav',     'name' => get_string('sectiontype_pagenav', 'local_byblos'),     'description' => get_string('sectiontype_pagenav_desc', 'local_byblos'),     'icon' => 'fa-sitemap'],
+    ['type' => 'social', 'name' => get_string('sectiontype_social', 'local_byblos'), 'description' => get_string('sectiontype_social_desc', 'local_byblos'), 'icon' => 'fa-share-alt'],
+    ['type' => 'cta', 'name' => get_string('sectiontype_cta', 'local_byblos'), 'description' => get_string('sectiontype_cta_desc', 'local_byblos'), 'icon' => 'fa-bullhorn'],
+    ['type' => 'divider', 'name' => get_string('sectiontype_divider', 'local_byblos'), 'description' => get_string('sectiontype_divider_desc', 'local_byblos'), 'icon' => 'fa-minus'],
+    ['type' => 'custom', 'name' => get_string('sectiontype_custom', 'local_byblos'), 'description' => get_string('sectiontype_custom_desc', 'local_byblos'), 'icon' => 'fa-code'],
+    ['type' => 'chart', 'name' => get_string('sectiontype_chart', 'local_byblos'), 'description' => get_string('sectiontype_chart_desc', 'local_byblos'), 'icon' => 'fa-bar-chart'],
+    ['type' => 'cloud', 'name' => get_string('sectiontype_cloud', 'local_byblos'), 'description' => get_string('sectiontype_cloud_desc', 'local_byblos'), 'icon' => 'fa-cloud'],
+    ['type' => 'quote', 'name' => get_string('sectiontype_quote', 'local_byblos'), 'description' => get_string('sectiontype_quote_desc', 'local_byblos'), 'icon' => 'fa-quote-left'],
+    ['type' => 'stats', 'name' => get_string('sectiontype_stats', 'local_byblos'), 'description' => get_string('sectiontype_stats_desc', 'local_byblos'), 'icon' => 'fa-pie-chart'],
+    ['type' => 'citations', 'name' => get_string('sectiontype_citations', 'local_byblos'), 'description' => get_string('sectiontype_citations_desc', 'local_byblos'), 'icon' => 'fa-book'],
+    ['type' => 'files', 'name' => get_string('sectiontype_files', 'local_byblos'), 'description' => get_string('sectiontype_files_desc', 'local_byblos'), 'icon' => 'fa-folder-open-o'],
+    ['type' => 'youtube', 'name' => get_string('sectiontype_youtube', 'local_byblos'), 'description' => get_string('sectiontype_youtube_desc', 'local_byblos'), 'icon' => 'fa-youtube-play'],
+    ['type' => 'pagenav', 'name' => get_string('sectiontype_pagenav', 'local_byblos'), 'description' => get_string('sectiontype_pagenav_desc', 'local_byblos'), 'icon' => 'fa-sitemap'],
 ];
+// phpcs:enable moodle.Files.LineLength
 
 // Theme definitions for the theme picker — derived from theme::get_all() so the picker
 // stays in sync with the canonical theme registry.

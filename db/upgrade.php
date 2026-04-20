@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Run upgrade steps.
  *
@@ -36,7 +34,6 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2026041700) {
-
         // Extend local_byblos_submission with assignsubmissionid, snapshotmode, snapshotid, timemodified.
         $table = new xmldb_table('local_byblos_submission');
 
@@ -46,7 +43,14 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
         }
 
         $field = new xmldb_field(
-            'snapshotmode', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, 'snapshot_on_submit', 'userid'
+            'snapshotmode',
+            XMLDB_TYPE_CHAR,
+            '30',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            'snapshot_on_submit',
+            'userid'
         );
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -92,7 +96,11 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
             $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
             $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
             $table->add_key(
-                'fk_submissionid', XMLDB_KEY_FOREIGN, ['submissionid'], 'local_byblos_submission', ['id']
+                'fk_submissionid',
+                XMLDB_KEY_FOREIGN,
+                ['submissionid'],
+                'local_byblos_submission',
+                ['id']
             );
             $table->add_key('fk_authorid', XMLDB_KEY_FOREIGN, ['authorid'], 'user', ['id']);
             $table->add_index('ix_submissionid_anchor', XMLDB_INDEX_NOTUNIQUE, ['submissionid', 'anchorkey']);
@@ -115,7 +123,11 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
             $table->add_key('fk_reviewerid', XMLDB_KEY_FOREIGN, ['reviewerid'], 'user', ['id']);
             $table->add_key('fk_revieweeuserid', XMLDB_KEY_FOREIGN, ['revieweeuserid'], 'user', ['id']);
             $table->add_key(
-                'fk_submissionid', XMLDB_KEY_FOREIGN, ['submissionid'], 'local_byblos_submission', ['id']
+                'fk_submissionid',
+                XMLDB_KEY_FOREIGN,
+                ['submissionid'],
+                'local_byblos_submission',
+                ['id']
             );
             $table->add_index('ix_assignmentid_reviewer', XMLDB_INDEX_NOTUNIQUE, ['assignmentid', 'reviewerid']);
             $table->add_index('ix_assignmentid_reviewee', XMLDB_INDEX_NOTUNIQUE, ['assignmentid', 'revieweeuserid']);
@@ -131,7 +143,6 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
     }
 
     if ($oldversion < 2026041800) {
-
         // Drop the unused local_byblos_submission.status column — it was always
         // written as 'submitted' and never read by any business logic.
         $table = new xmldb_table('local_byblos_submission');
@@ -144,7 +155,6 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
     }
 
     if ($oldversion < 2026041801) {
-
         // Add rubricdata column to local_byblos_peer_assignment for rubric-mode reviews.
         $table = new xmldb_table('local_byblos_peer_assignment');
         $field = new xmldb_field('rubricdata', XMLDB_TYPE_TEXT, null, null, null, null, null, 'advisoryscore');
@@ -156,7 +166,6 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
     }
 
     if ($oldversion < 2026042000) {
-
         // Add is_primary flag to local_byblos_collection_page so a page can designate
         // one of its collections as the "primary" one (used for Layer 1 nav strip).
         $table = new xmldb_table('local_byblos_collection_page');
@@ -169,7 +178,6 @@ function xmldb_local_byblos_upgrade(int $oldversion): bool {
     }
 
     if ($oldversion < 2026042100) {
-
         // Add groupid column to local_byblos_collection for Moodle-group-bound collections.
         $table = new xmldb_table('local_byblos_collection');
         $field = new xmldb_field('groupid', XMLDB_TYPE_INTEGER, '10', null, null, null, '0', 'userid');

@@ -25,8 +25,6 @@ use context_user;
 use local_byblos\file_manager;
 use local_byblos\page;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * External function for uploading images to portfolio pages via AJAX.
  *
@@ -39,7 +37,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class upload_external extends external_api {
-
     /**
      * Describe parameters for upload_image.
      *
