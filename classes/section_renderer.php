@@ -96,10 +96,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Hero section.
+     * Render the hero section.
      *
      * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
      * @param string $themekey Page theme key.
      * @return string Rendered HTML.
      */
@@ -144,11 +144,9 @@ class section_renderer {
     }
 
     /**
-     * Render the Text section.
+     * Render the text section.
      *
-     * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
      * @return string Rendered HTML.
      */
     private static function render_text(callable $cfgstr): string {
@@ -169,11 +167,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Text image section.
+     * Render the text image section.
      *
-     * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
+     * @param callable $cfgbool Shortcut returning a boolean config value.
      * @return string Rendered HTML.
      */
     private static function render_text_image(callable $cfgstr, callable $cfgbool): string {
@@ -212,11 +209,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Gallery section.
+     * Render the gallery section.
      *
      * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
+     * @param callable $cfgint Shortcut returning an int config value, with fallback.
      * @return string Rendered HTML.
      */
     private static function render_gallery(array $cfg, callable $cfgint): string {
@@ -262,10 +258,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Skills section.
+     * Render the skills section.
      *
      * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
      * @param string $themekey Page theme key.
      * @return string Rendered HTML.
      */
@@ -318,10 +314,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Timeline section.
+     * Render the timeline section.
      *
      * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
      * @param string $themekey Page theme key.
      * @return string Rendered HTML.
      */
@@ -391,11 +387,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Badges section.
+     * Render the badges section.
      *
-     * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
+     * @param callable $cfgbool Shortcut returning a boolean config value.
      * @return string Rendered HTML.
      */
     private static function render_badges(callable $cfgstr, callable $cfgbool): string {
@@ -417,11 +412,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Completions section.
+     * Render the completions section.
      *
-     * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
+     * @param callable $cfgbool Shortcut returning a boolean config value.
      * @return string Rendered HTML.
      */
     private static function render_completions(callable $cfgstr, callable $cfgbool): string {
@@ -442,11 +436,9 @@ class section_renderer {
     }
 
     /**
-     * Render the Social section.
+     * Render the social section.
      *
      * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
      * @return string Rendered HTML.
      */
     private static function render_social(array $cfg): string {
@@ -495,11 +487,9 @@ class section_renderer {
     }
 
     /**
-     * Render the Cta section.
+     * Render the cta section.
      *
-     * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
      * @return string Rendered HTML.
      */
     private static function render_cta(callable $cfgstr): string {
@@ -529,11 +519,9 @@ class section_renderer {
     }
 
     /**
-     * Render the Divider section.
+     * Render the divider section.
      *
-     * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
+     * @param callable $cfgstr Shortcut returning a string config value, with fallback.
      * @return string Rendered HTML.
      */
     private static function render_divider(callable $cfgstr): string {
@@ -548,11 +536,10 @@ class section_renderer {
     }
 
     /**
-     * Render the Custom section.
+     * Render the custom section.
      *
+     * @param string $content Section raw content.
      * @param array $cfg Decoded configdata.
-     * @param callable $cfgstr Shortcut for reading a scalar config value.
-     * @param string $themekey Page theme key.
      * @return string Rendered HTML.
      */
     private static function render_custom(string $content, array $cfg): string {
