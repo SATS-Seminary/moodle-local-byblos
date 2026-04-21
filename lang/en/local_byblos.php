@@ -94,6 +94,7 @@ $string['checklist_hint'] = 'Items below are guidance only — they are not enfo
 $string['checklist_none'] = 'No active assignments with a checklist for this page.';
 $string['checklist_pick'] = 'Show checklist for:';
 $string['checklist_toggle'] = 'Checklist';
+$string['choose_artefact_type'] = 'Choose type...';
 $string['choosesectiontype'] = 'Choose section type';
 $string['choosetpl'] = 'Choose a template';
 $string['choosetpl_desc'] = 'Select a template to start your new page, or start from scratch.';

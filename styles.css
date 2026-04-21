@@ -1634,8 +1634,6 @@ body.byblos-body-embedded .byblos-page-view {
     font-weight: normal;
 }
 
-
-
 /* === Extracted from editor.mustache === */
 /* Byblos Section Editor */
 .byblos-editor .byblos-section-card {
@@ -1647,7 +1645,7 @@ body.byblos-body-embedded .byblos-page-view {
 }
 .byblos-editor .byblos-section-card:hover {
     border-color: #80bdff !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Section toolbar */
@@ -1747,7 +1745,7 @@ body.byblos-body-embedded .byblos-page-view {
 }
 .byblos-theme-active {
     border-color: #0d6efd !important;
-    background: rgba(13,110,253,0.05) !important;
+    background: rgba(13, 110, 253, 0.05) !important;
 }
 .byblos-theme-label {
     font-size: 0.7rem !important;
@@ -1771,7 +1769,6 @@ body.byblos-body-embedded .byblos-page-view {
     box-shadow: none !important;
 }
 
-
 /* === Extracted from section_type_picker.mustache === */
 .byblos-type-pick-card {
     border: 2px solid transparent !important;
@@ -1780,5 +1777,5 @@ body.byblos-body-embedded .byblos-page-view {
 }
 .byblos-type-pick-card:hover {
     border-color: #80bdff !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }

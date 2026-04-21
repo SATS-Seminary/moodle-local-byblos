@@ -38,6 +38,7 @@ Example context (json):
         <div class="form-group">
             <label for="artefact-type">{{#str}}artefacttype, local_byblos{{/str}}</label>
             <select class="form-control" id="artefact-type" name="type" required>
+                <option value="">{{#str}}choose_artefact_type, local_byblos{{/str}}</option>
                 {{#types}}
                 <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
                 {{/types}}
