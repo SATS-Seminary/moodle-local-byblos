@@ -6,12 +6,17 @@
  * - Section-type-specific styles
  * - Editor styles (toolbars, drop zones, inline edit highlights)
  *
- * Uses !important on key properties to override Bootstrap cascade inside cards.
+ * Uses !important throughout to win over Moodle theme cascade inside card and
+ * Bootstrap defaults — the portfolio view must render identically regardless of
+ * which site theme is active. `stylelint-disable declaration-no-important` is
+ * therefore applied file-wide: these overrides are intentional.
  *
  * @package    local_byblos
  * @copyright  2026 South African Theological Seminary
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+/* stylelint-disable declaration-no-important */
 
 /* ==========================================================================
    BASE PAGE WRAPPER
@@ -326,7 +331,7 @@
    ========================================================================== */
 
 .byblos-theme-clean {
-    background-color: #ffffff !important;
+    background-color: #fff !important;
     color: #212529 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     padding: 1.5rem !important;
@@ -535,14 +540,14 @@
    ========================================================================== */
 
 .byblos-theme-creative {
-    background-color: #ffffff !important;
+    background-color: #fff !important;
     color: #1e293b !important;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     padding: 1.5rem !important;
 }
 
 .byblos-theme-creative .card {
-    background-color: #ffffff !important;
+    background-color: #fff !important;
     border: none !important;
     border-radius: 1rem !important;
     box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1) !important;
@@ -589,8 +594,8 @@
 .byblos-theme-creative .byblos-section-hero h3,
 .byblos-theme-creative .byblos-section-hero p {
     background: none !important;
-    -webkit-text-fill-color: #ffffff !important;
-    color: #ffffff !important;
+    -webkit-text-fill-color: #fff !important;
+    color: #fff !important;
 }
 
 .byblos-theme-creative img {
@@ -610,14 +615,14 @@
    ========================================================================== */
 
 .byblos-theme-corporate {
-    background-color: #ffffff !important;
+    background-color: #fff !important;
     color: #334155 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     padding: 1rem !important;
 }
 
 .byblos-theme-corporate .card {
-    background-color: #ffffff !important;
+    background-color: #fff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 0.25rem !important;
     box-shadow: none !important;
@@ -717,7 +722,7 @@
 .byblos-theme-streaming h3,
 .byblos-theme-streaming h4,
 .byblos-theme-streaming h5 {
-    color: #ffffff !important;
+    color: #fff !important;
     font-weight: 700 !important;
     font-size: 1.4em !important;
     letter-spacing: -0.02em !important;
@@ -743,7 +748,7 @@
 }
 
 .byblos-theme-streaming a:not(.btn):hover {
-    color: #00ffcc !important;
+    color: #0fc !important;
     text-decoration: underline !important;
 }
 
@@ -773,7 +778,7 @@
 }
 
 .byblos-theme-streaming .text-muted {
-    color: #666666 !important;
+    color: #666 !important;
 }
 
 /* Streaming hero: full cinematic feel */
@@ -832,7 +837,7 @@
 }
 
 .byblos-theme-streaming .byblos-social-link:hover {
-    color: #00ffcc !important;
+    color: #0fc !important;
     opacity: 1 !important;
 }
 
@@ -844,7 +849,7 @@
 /* Image placeholder */
 .byblos-theme-streaming .byblos-image-placeholder {
     background: #1a1a1a !important;
-    color: #666666 !important;
+    color: #666 !important;
 }
 
 /* ==========================================================================
@@ -856,7 +861,7 @@
     position: absolute !important;
     top: -2rem !important;
     right: 0 !important;
-    background: #ffffff !important;
+    background: #fff !important;
     border: 1px solid #dee2e6 !important;
     border-radius: 0.5rem !important;
     padding: 0.25rem 0.5rem !important;
@@ -961,7 +966,7 @@
     height: 2rem !important;
     border-radius: 50% !important;
     border: 1px solid #dee2e6 !important;
-    background: #ffffff !important;
+    background: #fff !important;
     color: #6c757d !important;
     font-size: 0.95rem !important;
     line-height: 1 !important;
@@ -988,7 +993,7 @@
     padding: 0 4px !important;
     border-radius: 8px !important;
     background: #dc3545 !important;
-    color: #ffffff !important;
+    color: #fff !important;
     font-size: 0.65rem !important;
     font-weight: 600 !important;
     line-height: 16px !important;
@@ -1004,7 +1009,7 @@
     max-width: calc(100vw - 3rem) !important;
     max-height: 420px !important;
     overflow-y: auto !important;
-    background: #ffffff !important;
+    background: #fff !important;
     border: 1px solid #dee2e6 !important;
     border-radius: 0.5rem !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
@@ -1142,7 +1147,7 @@ body.byblos-body-embedded .byblos-page-view {
 .byblos-template-thumb-overlay {
     position: absolute !important;
     inset: 0 !important;
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,0.25) 100%) !important;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.25) 100%) !important;
     pointer-events: none !important;
     opacity: 0 !important;
     transition: opacity 0.15s !important;
@@ -1629,3 +1634,151 @@ body.byblos-body-embedded .byblos-page-view {
     font-weight: normal;
 }
 
+
+
+/* === Extracted from editor.mustache === */
+/* Byblos Section Editor */
+.byblos-editor .byblos-section-card {
+    position: relative !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.byblos-editor .byblos-section-card:hover {
+    border-color: #80bdff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* Section toolbar */
+.byblos-editor .byblos-section-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 4px 10px !important;
+    background: #f0f0f0 !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    font-size: 0.75rem !important;
+    opacity: 0 !important;
+    transition: opacity 0.15s !important;
+}
+.byblos-editor .byblos-section-card:hover .byblos-section-toolbar {
+    opacity: 1 !important;
+}
+.byblos-editor .byblos-type-badge {
+    color: #888 !important;
+    text-transform: uppercase !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.04em !important;
+}
+.byblos-editor .byblos-toolbar-actions {
+    display: flex !important;
+    gap: 4px !important;
+}
+.byblos-editor .byblos-tb-btn {
+    border: none !important;
+    background: transparent !important;
+    color: #666 !important;
+    padding: 2px 8px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    font-size: 0.75rem !important;
+}
+.byblos-editor .byblos-tb-btn:hover {
+    background: #ddd !important;
+    color: #333 !important;
+}
+.byblos-editor .byblos-tb-delete:hover {
+    background: #f8d7da !important;
+    color: #dc3545 !important;
+}
+
+/* Section preview */
+.byblos-editor .byblos-section-preview {
+    padding: 0 !important;
+    min-height: 40px !important;
+}
+
+/* Inline edit panel */
+.byblos-editor .byblos-edit-panel {
+    background: #fafafa !important;
+    border-top: 2px solid #0d6efd !important;
+    padding: 1rem !important;
+}
+.byblos-editor .byblos-edit-panel .form-group {
+    margin-bottom: 0.75rem !important;
+}
+.byblos-editor .byblos-edit-panel label {
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+/* Add section buttons */
+.byblos-editor .byblos-add-row {
+    opacity: 0 !important;
+    transition: opacity 0.2s !important;
+    height: 32px !important;
+}
+.byblos-editor .byblos-section-stack:hover .byblos-add-row,
+.byblos-editor .byblos-add-row:hover {
+    opacity: 1 !important;
+}
+.byblos-editor .byblos-add-section-btn {
+    font-size: 0.75rem !important;
+    padding: 2px 12px !important;
+    border-style: dashed !important;
+}
+
+/* Theme picker */
+.byblos-theme-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 0.4rem 0.6rem !important;
+    border: 2px solid transparent !important;
+    border-radius: 6px !important;
+    transition: border-color 0.15s !important;
+    min-width: 70px !important;
+    margin-right: 0.5rem !important;
+}
+.byblos-theme-card:hover {
+    border-color: #80bdff !important;
+}
+.byblos-theme-active {
+    border-color: #0d6efd !important;
+    background: rgba(13,110,253,0.05) !important;
+}
+.byblos-theme-label {
+    font-size: 0.7rem !important;
+    margin-top: 2px !important;
+}
+
+/* Preview mode */
+.byblos-editor.byblos-preview-mode .byblos-section-toolbar,
+.byblos-editor.byblos-preview-mode .byblos-add-row,
+.byblos-editor.byblos-preview-mode .byblos-settings-panel,
+.byblos-editor.byblos-preview-mode .byblos-edit-panel {
+    display: none !important;
+}
+.byblos-editor.byblos-preview-mode .byblos-section-card {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+.byblos-editor.byblos-preview-mode .byblos-section-card:hover {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+
+/* === Extracted from section_type_picker.mustache === */
+.byblos-type-pick-card {
+    border: 2px solid transparent !important;
+    border-radius: 8px !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+.byblos-type-pick-card:hover {
+    border-color: #80bdff !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}

@@ -18,6 +18,31 @@
     @package  local_byblos
     @copyright 2026 South African Theological Seminary
     @license  http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+Example context (json):
+    {
+        "itemtitle": "example",
+        "hasshares": "example",
+        "shares": "example",
+        "sharetype": "example",
+        "displayname": "example",
+        "is_public": false,
+        "publicurl": "#",
+        "id": "example",
+        "timecreated": "example",
+        "actionurl": "#",
+        "sesskey": "example",
+        "itemid": "example",
+        "itemtype": "example",
+        "canpublic": "example",
+        "has_users": false,
+        "users": "example",
+        "disabled": "example",
+        "label": "example",
+        "has_courses": false,
+        "courses": "example",
+        "has_groups": false,
+        "groups": "example"
+    }
 }}
 
 <div class="local-byblos-share">
@@ -104,7 +129,7 @@
                 <input type="hidden" name="type" value="{{ itemtype }}">
 
                 <div class="form-group">
-                    <label for="sharetype">{{# str }} sharetype_label, local_byblos {{/ str }}</label>
+                    <label for="byblos-sharetype">{{# str }} sharetype_label, local_byblos {{/ str }}</label>
                     <select class="form-control" name="sharetype" id="byblos-sharetype">
                         <option value="user">{{# str }} share_user, local_byblos {{/ str }}</option>
                         <option value="course">{{# str }} share_course, local_byblos {{/ str }}</option>
@@ -116,7 +141,7 @@
                 </div>
 
                 <div class="form-group byblos-share-picker" data-sharetype="user">
-                    <label for="byblos-sharevalue-user">{{# str }} share_user, local_byblos {{/ str }}</label>
+                    <label>{{# str }} share_user, local_byblos {{/ str }}</label>
                     {{# has_users }}
                     <select class="form-control" id="byblos-sharevalue-user" data-name="sharevalue" disabled>
                         {{# users }}
@@ -132,7 +157,7 @@
                 </div>
 
                 <div class="form-group byblos-share-picker d-none" data-sharetype="course">
-                    <label for="byblos-sharevalue-course">{{# str }} share_course, local_byblos {{/ str }}</label>
+                    <label>{{# str }} share_course, local_byblos {{/ str }}</label>
                     {{# has_courses }}
                     <select class="form-control" id="byblos-sharevalue-course" data-name="sharevalue" disabled>
                         {{# courses }}
@@ -148,7 +173,7 @@
                 </div>
 
                 <div class="form-group byblos-share-picker d-none" data-sharetype="group">
-                    <label for="byblos-sharevalue-group">{{# str }} share_group, local_byblos {{/ str }}</label>
+                    <label>{{# str }} share_group, local_byblos {{/ str }}</label>
                     {{# has_groups }}
                     <select class="form-control" id="byblos-sharevalue-group" data-name="sharevalue" disabled>
                         {{# groups }}

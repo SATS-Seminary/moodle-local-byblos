@@ -1,4 +1,6 @@
 {{!
+    @template local_byblos/artefact_view
+
     View a single artefact with metadata, content, and file attachment.
 
     Context variables:
@@ -16,6 +18,18 @@
     @package    local_byblos
     @copyright  2026 South African Theological Seminary
     @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+Example context (json):
+    {
+        "dashurl": "#",
+        "isowner": false,
+        "editurl": "#",
+        "deleteurl": "#",
+        "sesskey": "example",
+        "artefact": "example",
+        "has_file": false,
+        "file_url": "#",
+        "file_name": "example"
+    }
 }}
 <div class="byblos-artefact-view">
 

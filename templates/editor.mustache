@@ -6,6 +6,19 @@
 
     Section-based portfolio page editor. Renders a vertical stack of sections
     with hover toolbars, inline edit panels, and a section type picker.
+
+    Example context (json):
+    {
+        "title": "My portfolio",
+        "status": "draft",
+        "theme_key": "clean",
+        "themes": [],
+        "sections": [],
+        "sectiontypes": [],
+        "artefacts": [],
+        "layouts": [],
+        "layout_key": "single"
+    }
 }}
 
 <div class="byblos-editor {{theme_css_class}}" id="byblos-editor" data-pageid="{{pageid}}" data-theme="{{theme_key}}">
@@ -14,8 +27,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="mb-0 byblos-editable-title" id="byblos-page-title"
-                title="{{#str}}edittitle_tooltip, local_byblos{{/str}}"
-                tabindex="0" role="button">{{title}}</h2>
+                title="{{#str}}edittitle_tooltip, local_byblos{{/str}}">{{title}}</h2>
             <span class="badge badge-secondary">{{status}}</span>
         </div>
         <div class="d-flex align-items-center">
@@ -76,6 +88,7 @@
     <div class="card mb-3 byblos-settings-panel">
         <div class="card-header d-flex justify-content-between align-items-center"
              style="cursor:pointer !important;"
+             role="button" tabindex="0"
              data-bs-toggle="collapse" data-bs-target="#byblos-settings-body" aria-expanded="false">
             <strong><i class="fa fa-cog"></i> {{#str}} pagesettings, local_byblos {{/str}}</strong>
             <i class="fa fa-chevron-down"></i>
@@ -102,6 +115,7 @@
     {{! Checklist panel — toggle to show active assignment checklists }}
     <div class="card mb-3 byblos-checklist-panel" id="byblos-checklist-panel" hidden>
         <div class="card-header d-flex justify-content-between align-items-center" style="cursor:pointer !important;"
+             role="button" tabindex="0"
              data-bs-toggle="collapse" data-bs-target="#byblos-checklist-body" aria-expanded="false">
             <strong><i class="fa fa-check-square-o"></i> {{#str}} checklist_heading, local_byblos {{/str}}</strong>
             <i class="fa fa-chevron-down"></i>
@@ -177,139 +191,3 @@
     {{> local_byblos/section_type_picker }}
 
 </div>
-
-<style>
-/* Byblos Section Editor */
-.byblos-editor .byblos-section-card {
-    position: relative !important;
-    border: 1px solid #e0e0e0 !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-    transition: border-color 0.2s, box-shadow 0.2s !important;
-}
-.byblos-editor .byblos-section-card:hover {
-    border-color: #80bdff !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
-}
-
-/* Section toolbar */
-.byblos-editor .byblos-section-toolbar {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 4px 10px !important;
-    background: #f0f0f0 !important;
-    border-bottom: 1px solid #e0e0e0 !important;
-    font-size: 0.75rem !important;
-    opacity: 0 !important;
-    transition: opacity 0.15s !important;
-}
-.byblos-editor .byblos-section-card:hover .byblos-section-toolbar {
-    opacity: 1 !important;
-}
-.byblos-editor .byblos-type-badge {
-    color: #888 !important;
-    text-transform: uppercase !important;
-    font-size: 0.65rem !important;
-    letter-spacing: 0.04em !important;
-}
-.byblos-editor .byblos-toolbar-actions {
-    display: flex !important;
-    gap: 4px !important;
-}
-.byblos-editor .byblos-tb-btn {
-    border: none !important;
-    background: transparent !important;
-    color: #666 !important;
-    padding: 2px 8px !important;
-    cursor: pointer !important;
-    border-radius: 3px !important;
-    font-size: 0.75rem !important;
-}
-.byblos-editor .byblos-tb-btn:hover {
-    background: #ddd !important;
-    color: #333 !important;
-}
-.byblos-editor .byblos-tb-delete:hover {
-    background: #f8d7da !important;
-    color: #dc3545 !important;
-}
-
-/* Section preview */
-.byblos-editor .byblos-section-preview {
-    padding: 0 !important;
-    min-height: 40px !important;
-}
-
-/* Inline edit panel */
-.byblos-editor .byblos-edit-panel {
-    background: #fafafa !important;
-    border-top: 2px solid #0d6efd !important;
-    padding: 1rem !important;
-}
-.byblos-editor .byblos-edit-panel .form-group {
-    margin-bottom: 0.75rem !important;
-}
-.byblos-editor .byblos-edit-panel label {
-    font-weight: 600 !important;
-    font-size: 0.8rem !important;
-    margin-bottom: 0.25rem !important;
-}
-
-/* Add section buttons */
-.byblos-editor .byblos-add-row {
-    opacity: 0 !important;
-    transition: opacity 0.2s !important;
-    height: 32px !important;
-}
-.byblos-editor .byblos-section-stack:hover .byblos-add-row,
-.byblos-editor .byblos-add-row:hover {
-    opacity: 1 !important;
-}
-.byblos-editor .byblos-add-section-btn {
-    font-size: 0.75rem !important;
-    padding: 2px 12px !important;
-    border-style: dashed !important;
-}
-
-/* Theme picker */
-.byblos-theme-card {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    padding: 0.4rem 0.6rem !important;
-    border: 2px solid transparent !important;
-    border-radius: 6px !important;
-    transition: border-color 0.15s !important;
-    min-width: 70px !important;
-    margin-right: 0.5rem !important;
-}
-.byblos-theme-card:hover {
-    border-color: #80bdff !important;
-}
-.byblos-theme-active {
-    border-color: #0d6efd !important;
-    background: rgba(13,110,253,0.05) !important;
-}
-.byblos-theme-label {
-    font-size: 0.7rem !important;
-    margin-top: 2px !important;
-}
-
-/* Preview mode */
-.byblos-editor.byblos-preview-mode .byblos-section-toolbar,
-.byblos-editor.byblos-preview-mode .byblos-add-row,
-.byblos-editor.byblos-preview-mode .byblos-settings-panel,
-.byblos-editor.byblos-preview-mode .byblos-edit-panel {
-    display: none !important;
-}
-.byblos-editor.byblos-preview-mode .byblos-section-card {
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-}
-.byblos-editor.byblos-preview-mode .byblos-section-card:hover {
-    border: none !important;
-    box-shadow: none !important;
-}
-</style>

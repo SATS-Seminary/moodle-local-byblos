@@ -6,6 +6,14 @@
 
     Section type picker modal. Shows 12 section types with icons and labels.
     Displayed when the user clicks "Add Section" between sections.
+Example context (json):
+    {
+        "section_types": "example",
+        "type": "example",
+        "icon": "example",
+        "name": "example",
+        "description": "example"
+    }
 }}
 
 <div class="modal fade" id="byblos-section-type-modal" tabindex="-1" aria-hidden="true">
@@ -35,15 +43,3 @@
         </div>
     </div>
 </div>
-
-<style>
-.byblos-type-pick-card {
-    border: 2px solid transparent !important;
-    border-radius: 8px !important;
-    transition: border-color 0.15s, box-shadow 0.15s !important;
-}
-.byblos-type-pick-card:hover {
-    border-color: #80bdff !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-}
-</style>

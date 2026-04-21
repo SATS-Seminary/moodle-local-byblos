@@ -65,10 +65,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci phplint
 
-      - name: PHP Mess Detector
-        continue-on-error: true
-        if: ${{ !cancelled() }}
-        run: moodle-plugin-ci phpmd
+      # PHP Mess Detector is omitted: its default ruleset flags heuristic issues
+      # (service classes with >10 public methods, cyclomatic complexity on match-
+      # expressions, boolean flag parameters on external WS) that do not reflect
+      # Moodle's actual coding conventions. Moodle core doesn't enforce PHPMD;
+      # substantive checks below (phpcs, phpdoc, validate, savepoints, phpunit)
+      # cover code quality.
 
       - name: Moodle Code Checker
         if: ${{ !cancelled() }}
@@ -87,12 +89,10 @@ jobs:
         run: moodle-plugin-ci savepoints
 
       - name: Mustache Lint
-        continue-on-error: true # Warnings (missing @template example context, HTML validation) are non-blocking.
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci mustache
 
       - name: Grunt
-        continue-on-error: true # ESLint/Stylelint warnings on existing code are non-blocking; errors still fail.
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci grunt
 

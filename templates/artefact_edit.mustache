@@ -1,9 +1,26 @@
 {{!
+    @template local_byblos/artefact_edit
+
     Artefact create/edit form.
 
     @package    local_byblos
     @copyright  2026 South African Theological Seminary
     @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+Example context (json):
+    {
+        "is_edit": false,
+        "actionurl": "#",
+        "sesskey": "example",
+        "id": "example",
+        "types": [
+            {"value": "text", "label": "Text", "selected": true},
+            {"value": "file", "label": "File", "selected": false}
+        ],
+        "title": "example",
+        "description": "example",
+        "content": "example",
+        "cancelurl": "#"
+    }
 }}
 <div class="byblos-artefact-edit">
 

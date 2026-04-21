@@ -1,4 +1,6 @@
 {{!
+    @template local_byblos/page_view
+
     View a single portfolio page with themed section-based rendering.
 
     The page is rendered server-side by \local_byblos\renderer::render_page()
@@ -22,6 +24,26 @@
     @package    local_byblos
     @copyright  2026 South African Theological Seminary
     @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+Example context (json):
+    {
+        "page": "example",
+        "ispreview": false,
+        "collection_nav": "example",
+        "is_current": false,
+        "url": "#",
+        "title": "example",
+        "dashurl": "#",
+        "isowner": false,
+        "previewurl": "#",
+        "editurl": "#",
+        "publishurl": "#",
+        "sesskey": "example",
+        "shareurl": "#",
+        "exporturl": "#",
+        "deleteurl": "#",
+        "has_sections": false,
+        "rendered_content": "example"
+    }
 }}
 <div class="byblos-page-view" data-theme="{{page.themekey}}">
 
