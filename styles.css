@@ -1779,3 +1779,382 @@ body.byblos-body-embedded .byblos-page-view {
     border-color: #80bdff !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
+
+.byblos-announce-popover {
+    position: absolute !important;
+    right: 1rem !important;
+    z-index: 1050 !important;
+    min-width: 360px !important;
+    max-width: 480px !important;
+    margin-top: 0.5rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Chart editor — two-pane layout with tabs on the form side and a live SVG
+   preview on the right. */
+.bse-chart-editor {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    align-items: flex-start !important;
+}
+.bse-chart-editor-form {
+    flex: 1 1 360px !important;
+    min-width: 340px !important;
+}
+.bse-chart-editor-preview {
+    flex: 1 1 320px !important;
+    min-width: 280px !important;
+    background: #fafbfc !important;
+    border: 1px solid #e6e8eb !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+    position: sticky !important;
+    top: 0.5rem !important;
+}
+.bse-chart-preview-header {
+    font-size: 0.8rem !important;
+    color: #6b7280 !important;
+    margin-bottom: 0.5rem !important;
+}
+.bse-chart-tabs {
+    margin-bottom: 0.75rem !important;
+}
+.bse-chart-tabs .nav-link {
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.85rem !important;
+}
+.bse-chart-tab-pane {
+    display: none !important;
+}
+.bse-chart-tab-pane.active {
+    display: block !important;
+}
+/* Type tile picker */
+.bse-chart-typepicker {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+}
+.bse-chart-typetile {
+    flex: 0 0 auto !important;
+    width: 72px !important;
+    padding: 0.5rem !important;
+    border: 1px solid #d0d4d9 !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: #6b7280 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    cursor: pointer !important;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s !important;
+}
+.bse-chart-typetile:hover {
+    border-color: #80bdff !important;
+    color: #0d6efd !important;
+}
+.bse-chart-typetile.active {
+    border-color: #0d6efd !important;
+    color: #0d6efd !important;
+    background: #eff6ff !important;
+}
+.bse-chart-typetile-label {
+    font-size: 0.7rem !important;
+}
+/* Data table */
+.bse-chart-table {
+    margin-bottom: 0.5rem !important;
+}
+.bse-chart-table th {
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #6b7280 !important;
+    border-bottom: 1px solid #e6e8eb !important;
+}
+.bse-chart-table td {
+    padding: 0.25rem !important;
+    vertical-align: middle !important;
+}
+.bse-chart-table .bse-ct-handle,
+.bse-chart-table .bse-ci-handle {
+    width: 18px !important;
+}
+.bse-ci-handle {
+    cursor: grab !important;
+    color: #b0b4ba !important;
+    text-align: center !important;
+}
+.bse-ci-handle:hover {
+    color: #6b7280 !important;
+}
+.bse-ci-values {
+    display: flex !important;
+    gap: 0.25rem !important;
+    flex-wrap: wrap !important;
+}
+.bse-ci-values .bse-ci-value {
+    max-width: 90px !important;
+}
+.bse-chart-item.bse-ci-dragging {
+    opacity: 0.4 !important;
+}
+.bse-chart-item.bse-ci-dragging .bse-ci-handle {
+    cursor: grabbing !important;
+}
+
+/* Gallery editor — visual thumbnail grid + detail panel below. */
+.bse-gallery-editor {
+    margin-top: 0.25rem !important;
+}
+.bse-gallery-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+.bse-gallery-coltiles {
+    display: inline-flex !important;
+    border: 1px solid #d0d4d9 !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+}
+.bse-gallery-coltile {
+    background: #fff !important;
+    border: 0 !important;
+    border-right: 1px solid #d0d4d9 !important;
+    color: #6b7280 !important;
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.6rem !important;
+    cursor: pointer !important;
+}
+.bse-gallery-coltile:last-child {
+    border-right: 0 !important;
+}
+.bse-gallery-coltile.active {
+    background: #0d6efd !important;
+    color: #fff !important;
+}
+.bse-gallery-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+}
+.bse-gallery-grid[data-cols="1"] {
+    grid-template-columns: repeat(1, 1fr) !important;
+}
+.bse-gallery-grid[data-cols="2"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+}
+.bse-gallery-grid[data-cols="4"] {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+.bse-gallery-tile {
+    position: relative !important;
+    aspect-ratio: 4 / 3 !important;
+    border: 1px solid #d0d4d9 !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    background: #f7f8fa !important;
+    cursor: pointer !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+.bse-gallery-tile:hover {
+    border-color: #80bdff !important;
+}
+.bse-gallery-tile.active {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25) !important;
+}
+.bse-gallery-tile-thumb {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #f1f3f5 !important;
+}
+.bse-gallery-tile-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+.bse-gallery-tile-empty {
+    font-size: 2rem !important;
+    color: #b0b4ba !important;
+}
+.bse-gallery-tile-caption {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.25rem 0.5rem !important;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0)) !important;
+    color: #fff !important;
+    font-size: 0.78rem !important;
+    line-height: 1.2 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+}
+.bse-gallery-tile-remove {
+    position: absolute !important;
+    top: 4px !important;
+    right: 4px !important;
+    width: 22px !important;
+    height: 22px !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: rgba(0, 0, 0, 0.55) !important;
+    color: #fff !important;
+    font-size: 0.7rem !important;
+    line-height: 1 !important;
+    opacity: 0 !important;
+    transition: opacity 0.15s !important;
+    cursor: pointer !important;
+}
+.bse-gallery-tile:hover .bse-gallery-tile-remove {
+    opacity: 1 !important;
+}
+.bse-gallery-tile-add {
+    aspect-ratio: 4 / 3 !important;
+    border: 2px dashed #d0d4d9 !important;
+    background: #fff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #6b7280 !important;
+}
+.bse-gallery-tile-add:hover {
+    border-color: #0d6efd !important;
+    color: #0d6efd !important;
+}
+.bse-gallery-tile-add i {
+    font-size: 1.5rem !important;
+}
+.bse-gallery-tile-dragging {
+    opacity: 0.4 !important;
+}
+/* Inline detail panel below the grid. */
+.bse-gallery-detail {
+    display: flex !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem !important;
+    background: #fafbfc !important;
+    border: 1px solid #e6e8eb !important;
+    border-radius: 6px !important;
+    margin-top: 0.25rem !important;
+}
+.bse-gallery-detail.d-none {
+    display: none !important;
+}
+.bse-gd-thumb {
+    flex: 0 0 120px !important;
+    width: 120px !important;
+    height: 90px !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    background: #f1f3f5 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.bse-gd-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+.bse-gd-thumb-empty {
+    color: #b0b4ba !important;
+    font-size: 1.5rem !important;
+}
+.bse-gd-fields {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+/* Code editor (custom-HTML section) — a textarea overlaid on a syntax-
+   highlighted <pre>. Both share font metrics and padding so cursor + glyphs
+   line up perfectly. */
+.bse-codeedit {
+    position: relative !important;
+    border: 1px solid #d0d4d9 !important;
+    border-radius: 6px !important;
+    background: #1e1e1e !important;
+    overflow: hidden !important;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+    font-size: 0.85rem !important;
+    line-height: 1.45 !important;
+    min-height: 220px !important;
+}
+.bse-codeedit-shade,
+.bse-codeedit-input {
+    margin: 0 !important;
+    padding: 0.6rem 0.75rem !important;
+    border: 0 !important;
+    background: transparent !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    white-space: pre !important;
+    tab-size: 2 !important;
+}
+.bse-codeedit-shade {
+    position: absolute !important;
+    inset: 0 !important;
+    overflow: auto !important;
+    pointer-events: none !important;
+    color: #d4d4d4 !important;
+}
+.bse-codeedit-shade code {
+    display: block !important;
+    color: inherit !important;
+    background: transparent !important;
+    padding: 0 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+}
+.bse-codeedit-input {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 220px !important;
+    resize: vertical !important;
+    color: transparent !important;
+    caret-color: #fff !important;
+    -webkit-text-fill-color: transparent !important;
+    z-index: 1 !important;
+    outline: none !important;
+}
+.bse-codeedit-input::selection {
+    background: rgba(13, 110, 253, 0.45) !important;
+}
+/* Token palette — VS Code-style dark theme. */
+.ce-t {
+    /* tag name */
+    color: #569cd6 !important;
+}
+.ce-a {
+    /* attribute */
+    color: #9cdcfe !important;
+}
+.ce-s {
+    /* string value */
+    color: #ce9178 !important;
+}
+.ce-c {
+    /* comment */
+    color: #6a9955 !important;
+}
+.ce-d {
+    /* doctype */
+    color: #c586c0 !important;
+}
+.ce-tagwrap {
+    /* angle brackets, '=' */
+    color: #808080 !important;
+}

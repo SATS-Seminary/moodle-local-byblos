@@ -99,17 +99,85 @@ class section_helpers {
     /**
      * Render a server-side SVG chart (bar, line, pie, donut).
      *
-     * @param array $config Decoded configdata: `heading`, `type`, `color`, `items[{label,value}]`.
+     * Accepted configdata:
+     *  - heading      (string) Section heading.
+     *  - type         (string) bar | line | pie | donut.
+     *  - color        (string) Base hex colour. Per-item `color` overrides this.
+     *  - orientation  (string) Bar only: horizontal | vertical.
+     *  - series       (string[]) Optional series names. When >1, each item is
+     *                            expected to expose `values: [...]` matching
+     *                            the series count. Pie/donut ignore series.
+     *  - items        (array)    [{label, value|values[], color?}].
+     *  - x_label      (string)   Axis label (bar/line only).
+     *  - y_label      (string)   Axis label (bar/line only).
+     *  - unit_suffix  (string)   Appended to displayed values (e.g. "%", "hrs").
+     *  - caption      (string)   Italic footer (source / context).
+     *  - show_values  (bool)     Show numeric values on bars / next to slices.
+     *  - sort         (string)   input | asc | desc. Reorders items by the
+     *                            first series value when set to asc / desc.
+     *
+     * @param array $config Decoded configdata.
      * @return string HTML fragment.
      */
     public static function render_chart(array $config): string {
-        $heading = (string) ($config['heading'] ?? '');
-        $type    = (string) ($config['type'] ?? 'bar');
-        $color   = (string) ($config['color'] ?? '#0d6efd');
-        $items   = is_array($config['items'] ?? null) ? $config['items'] : [];
+        $heading     = (string) ($config['heading'] ?? '');
+        $type        = (string) ($config['type'] ?? 'bar');
+        $color       = (string) ($config['color'] ?? '#0d6efd');
+        $orientation = (string) ($config['orientation'] ?? 'horizontal');
+        $xlabel      = (string) ($config['x_label'] ?? '');
+        $ylabel      = (string) ($config['y_label'] ?? '');
+        $unit        = (string) ($config['unit_suffix'] ?? '');
+        $caption     = (string) ($config['caption'] ?? '');
+        $showvalues  = !isset($config['show_values']) || (bool) $config['show_values'];
+        $sort        = (string) ($config['sort'] ?? 'input');
+        $series      = is_array($config['series'] ?? null) ? array_values($config['series']) : [];
+        $rawitems    = is_array($config['items'] ?? null) ? $config['items'] : [];
 
         if (!in_array($type, ['bar', 'line', 'pie', 'donut'], true)) {
             $type = 'bar';
+        }
+        if (!in_array($orientation, ['horizontal', 'vertical'], true)) {
+            $orientation = 'horizontal';
+        }
+        if (!in_array($sort, ['input', 'asc', 'desc'], true)) {
+            $sort = 'input';
+        }
+
+        // Normalise items into a uniform multi-series shape: each item has
+        // label, values (array), and optional override color.
+        $seriescount = max(1, count($series));
+        $items = [];
+        foreach ($rawitems as $it) {
+            if (!is_array($it)) {
+                continue;
+            }
+            $values = [];
+            if (isset($it['values']) && is_array($it['values'])) {
+                foreach ($it['values'] as $v) {
+                    $values[] = (float) $v;
+                }
+            } else if (isset($it['value'])) {
+                $values[] = (float) $it['value'];
+            }
+            while (count($values) < $seriescount) {
+                $values[] = 0.0;
+            }
+            $items[] = [
+                'label'  => (string) ($it['label'] ?? ''),
+                'values' => array_slice($values, 0, $seriescount),
+                'color'  => isset($it['color']) ? (string) $it['color'] : '',
+            ];
+        }
+
+        if ($sort !== 'input' && !empty($items)) {
+            usort($items, function ($a, $b) use ($sort) {
+                $av = (float) ($a['values'][0] ?? 0);
+                $bv = (float) ($b['values'][0] ?? 0);
+                if ($av === $bv) {
+                    return 0;
+                }
+                return ($sort === 'asc') ? ($av <=> $bv) : ($bv <=> $av);
+            });
         }
 
         $html = '<div class="byblos-section-chart" style="padding:1.5rem 0 !important;">';
@@ -124,20 +192,35 @@ class section_helpers {
             return $html;
         }
 
+        $opts = [
+            'series'      => $series,
+            'unit'        => $unit,
+            'xlabel'      => $xlabel,
+            'ylabel'      => $ylabel,
+            'showvalues'  => $showvalues,
+            'orientation' => $orientation,
+        ];
+
         switch ($type) {
             case 'line':
-                $html .= self::render_chart_line($items, $color);
+                $html .= self::render_chart_line($items, $color, $opts);
                 break;
             case 'pie':
-                $html .= self::render_chart_pie($items, $color, false);
+                $html .= self::render_chart_pie($items, $color, false, $unit);
                 break;
             case 'donut':
-                $html .= self::render_chart_pie($items, $color, true);
+                $html .= self::render_chart_pie($items, $color, true, $unit);
                 break;
             case 'bar':
             default:
-                $html .= self::render_chart_bar($items, $color);
+                $html .= self::render_chart_bar($items, $color, $opts);
                 break;
+        }
+
+        if ($caption !== '') {
+            $html .= '<p class="byblos-chart-caption text-muted"'
+                . ' style="font-size:0.85rem !important; margin-top:0.5rem !important; font-style:italic !important;">'
+                . s($caption) . '</p>';
         }
 
         $html .= '</div>';
@@ -145,136 +228,393 @@ class section_helpers {
     }
 
     /**
-     * SVG horizontal bar chart.
+     * Format a numeric chart value with the user-supplied unit suffix.
+     * Drops the decimal portion when the value is integral.
      *
-     * @param array  $items [{label, value}, ...]
+     * @param float $val Value.
+     * @param string $unit Unit suffix.
+     * @return string
+     */
+    private static function chart_format_value(float $val, string $unit): string {
+        $str = (abs($val - round($val)) < 0.0001) ? (string) (int) round($val) : (string) $val;
+        return $str . $unit;
+    }
+
+    /**
+     * SVG bar chart. Supports single or multi-series, horizontal or vertical
+     * orientation, value labels on each bar, axis labels, and per-item colour
+     * overrides.
+     *
+     * @param array  $items Normalised items: [{label, values[], color}, ...].
      * @param string $color Base bar colour (hex).
+     * @param array  $opts  Layout / labelling options.
+     *                      keys: series[], unit, xlabel, ylabel,
+     *                            showvalues (bool), orientation.
      * @return string SVG wrapped in a div.
      */
-    private static function render_chart_bar(array $items, string $color): string {
+    private static function render_chart_bar(array $items, string $color, array $opts): string {
+        $series      = $opts['series'] ?? [];
+        $seriescount = max(1, count($series));
+        $unit        = (string) ($opts['unit'] ?? '');
+        $xlabel      = (string) ($opts['xlabel'] ?? '');
+        $ylabel      = (string) ($opts['ylabel'] ?? '');
+        $showvalues  = !empty($opts['showvalues']);
+        $orientation = (string) ($opts['orientation'] ?? 'horizontal');
+
+        // Compute the global maximum across every value in every series for scaling.
         $max = 0.0;
         foreach ($items as $it) {
-            $v = (float) ($it['value'] ?? 0);
-            if ($v > $max) {
-                $max = $v;
+            foreach (($it['values'] ?? []) as $v) {
+                if ((float) $v > $max) {
+                    $max = (float) $v;
+                }
             }
         }
         if ($max <= 0) {
             $max = 1.0;
         }
 
+        $count = count($items);
+
+        if ($orientation === 'vertical') {
+            // Vertical (column) bars.
+            $chartw  = 720;
+            $padleft = $ylabel !== '' ? 56 : 36;
+            $padr    = 20;
+            $padtop  = ($showvalues ? 24 : 12);
+            $padbot  = 56 + ($xlabel !== '' ? 18 : 0);
+            $ploth   = 240;
+            $h       = $padtop + $ploth + $padbot;
+            $plotw   = $chartw - $padleft - $padr;
+            $groupw  = $plotw / max(1, $count);
+            $gappx   = 6;
+            $barw    = max(2, ($groupw - $gappx * ($seriescount + 1)) / $seriescount);
+
+            $svg = self::chart_svg_open($chartw, $h);
+            $svg .= self::chart_axes($padleft, $padtop, $plotw, $ploth);
+            $svg .= self::chart_y_grid($padleft, $padtop, $plotw, $ploth, $max, $unit);
+
+            foreach (array_values($items) as $i => $it) {
+                $label    = (string) ($it['label'] ?? '');
+                $values   = (array) ($it['values'] ?? []);
+                $override = (string) ($it['color'] ?? '');
+                $gx       = $padleft + $i * $groupw;
+                foreach ($values as $s => $val) {
+                    $val = (float) $val;
+                    $bh  = ($val / $max) * $ploth;
+                    $bx  = $gx + $gappx + $s * ($barw + $gappx);
+                    $by  = $padtop + $ploth - $bh;
+                    $fill = $override !== '' && $seriescount === 1
+                        ? $override
+                        : self::variant_color($color, $s, $seriescount);
+                    $svg .= '<rect x="' . round($bx, 2) . '" y="' . round($by, 2)
+                        . '" width="' . round($barw, 2) . '" height="' . round($bh, 2)
+                        . '" rx="2" ry="2" fill="' . s($fill) . '"></rect>';
+                    if ($showvalues) {
+                        $svg .= '<text x="' . round($bx + $barw / 2, 2) . '" y="' . round($by - 4, 2)
+                            . '" text-anchor="middle" font-size="11" fill="#333">'
+                            . s(self::chart_format_value($val, $unit)) . '</text>';
+                    }
+                }
+                // Category label below the group.
+                $svg .= '<text x="' . round($gx + $groupw / 2, 2) . '" y="' . ($padtop + $ploth + 16)
+                    . '" text-anchor="middle" font-size="12" fill="#444">' . s($label) . '</text>';
+            }
+
+            $svg .= self::chart_axis_labels($xlabel, $ylabel, $chartw, $h, $padleft, $padtop, $ploth);
+            $svg .= self::chart_legend($series, $color, $padleft, $h - 12, $seriescount);
+            $svg .= '</svg>';
+            return '<div class="byblos-chart-canvas">' . $svg . '</div>';
+        }
+
+        // Horizontal bars (default).
         $rowh    = 34;
         $labelw  = 150;
-        $chartw  = 640;
-        $padding = 20;
-        $count   = count($items);
-        $h       = $padding * 2 + $rowh * $count;
-        $barmax  = $chartw - $labelw - 60;
+        $chartw  = 720;
+        $padtop  = 16;
+        $padbot  = ($xlabel !== '' ? 36 : 12) + ($seriescount > 1 ? 28 : 0);
+        $padr    = 60;
+        $rowspacing = 2;
 
-        $svg = '<svg viewBox="0 0 ' . $chartw . ' ' . $h . '" preserveAspectRatio="xMidYMid meet"'
-            . ' style="width:100% !important; max-width:100% !important; height:auto !important;"'
-            . ' xmlns="http://www.w3.org/2000/svg" role="img">';
+        // Each item occupies one "row group". When there are multiple series
+        // we stack them inside the row group with a small gap.
+        $groupheight = $seriescount * $rowh + $rowspacing;
+        $h           = $padtop + $groupheight * $count + $padbot;
+        $barmax      = $chartw - $labelw - $padr;
+
+        $svg = self::chart_svg_open($chartw, $h);
 
         foreach (array_values($items) as $i => $it) {
-            $label = (string) ($it['label'] ?? '');
-            $val   = (float) ($it['value'] ?? 0);
-            $barw  = (int) round(($val / $max) * $barmax);
-            $y     = $padding + $i * $rowh;
+            $label    = (string) ($it['label'] ?? '');
+            $values   = (array) ($it['values'] ?? []);
+            $override = (string) ($it['color'] ?? '');
+            $groupy   = $padtop + $i * $groupheight;
 
-            $svg .= '<text x="' . ($labelw - 8) . '" y="' . ($y + 18) . '"'
-                . ' text-anchor="end" font-size="13" fill="#333">' . s($label) . '</text>';
-            $svg .= '<rect x="' . $labelw . '" y="' . ($y + 6) . '" width="' . $barw
-                . '" height="' . ($rowh - 14) . '" rx="3" ry="3" fill="' . s($color) . '"></rect>';
-            $svg .= '<text x="' . ($labelw + $barw + 6) . '" y="' . ($y + 18) . '"'
-                . ' font-size="12" fill="#666">' . s((string) $val) . '</text>';
+            // Category label centred on the group.
+            $svg .= '<text x="' . ($labelw - 8) . '" y="' . round($groupy + ($groupheight / 2) + 4, 2)
+                . '" text-anchor="end" font-size="13" fill="#333">' . s($label) . '</text>';
+
+            foreach ($values as $s => $val) {
+                $val  = (float) $val;
+                $barw = (int) round(($val / $max) * $barmax);
+                $by   = $groupy + $s * $rowh + 6;
+                $fill = $override !== '' && $seriescount === 1
+                    ? $override
+                    : self::variant_color($color, $s, $seriescount);
+                $svg .= '<rect x="' . $labelw . '" y="' . $by . '" width="' . $barw
+                    . '" height="' . ($rowh - 14) . '" rx="3" ry="3" fill="' . s($fill) . '"></rect>';
+                if ($showvalues) {
+                    $svg .= '<text x="' . ($labelw + $barw + 6) . '" y="' . ($by + 12)
+                        . '" font-size="12" fill="#666">'
+                        . s(self::chart_format_value($val, $unit)) . '</text>';
+                }
+            }
         }
 
+        if ($xlabel !== '') {
+            $svg .= '<text x="' . round($labelw + $barmax / 2, 2) . '" y="' . ($h - 14)
+                . '" text-anchor="middle" font-size="12" fill="#555" font-style="italic">'
+                . s($xlabel) . '</text>';
+        }
+        if ($ylabel !== '') {
+            // Vertical text along the left edge.
+            $cy = $padtop + ($groupheight * $count) / 2;
+            $svg .= '<text x="14" y="' . round($cy, 2)
+                . '" text-anchor="middle" font-size="12" fill="#555" font-style="italic"'
+                . ' transform="rotate(-90 14 ' . round($cy, 2) . ')">' . s($ylabel) . '</text>';
+        }
+        if ($seriescount > 1) {
+            $svg .= self::chart_legend($series, $color, $labelw, $h - 14, $seriescount);
+        }
         $svg .= '</svg>';
         return '<div class="byblos-chart-canvas">' . $svg . '</div>';
     }
 
     /**
-     * SVG line chart with data points.
+     * Open the chart's SVG wrapper with standard sizing.
      *
-     * @param array  $items [{label, value}, ...]
-     * @param string $color Line / point colour.
+     * @param int $w Viewport width.
+     * @param int $h Viewport height.
+     * @return string Opening <svg> tag.
+     */
+    private static function chart_svg_open(int $w, int $h): string {
+        return '<svg viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="xMidYMid meet"'
+            . ' style="width:100% !important; max-width:100% !important; height:auto !important;"'
+            . ' xmlns="http://www.w3.org/2000/svg" role="img">';
+    }
+
+    /**
+     * Draw the X and Y axis lines for vertical charts.
+     *
+     * @param int $padleft Left padding.
+     * @param int $padtop Top padding.
+     * @param float $plotw Plot area width.
+     * @param float $ploth Plot area height.
+     * @return string SVG fragment.
+     */
+    private static function chart_axes(int $padleft, int $padtop, float $plotw, float $ploth): string {
+        $bottomy = $padtop + $ploth;
+        return '<line x1="' . $padleft . '" y1="' . $bottomy . '" x2="' . round($padleft + $plotw, 2)
+            . '" y2="' . $bottomy . '" stroke="#ccc" stroke-width="1"/>'
+            . '<line x1="' . $padleft . '" y1="' . $padtop . '" x2="' . $padleft
+            . '" y2="' . $bottomy . '" stroke="#ccc" stroke-width="1"/>';
+    }
+
+    /**
+     * Draw four horizontal gridlines with tick labels on the y-axis.
+     *
+     * @param int $padleft Left padding.
+     * @param int $padtop Top padding.
+     * @param float $plotw Plot area width.
+     * @param float $ploth Plot area height.
+     * @param float $max Max value across the plot.
+     * @param string $unit Unit suffix appended to tick labels.
+     * @return string SVG fragment.
+     */
+    private static function chart_y_grid(
+        int $padleft,
+        int $padtop,
+        float $plotw,
+        float $ploth,
+        float $max,
+        string $unit
+    ): string {
+        $out = '';
+        for ($i = 1; $i <= 4; $i++) {
+            $y = $padtop + ($ploth * (4 - $i) / 4);
+            $v = $max * ($i / 4);
+            $out .= '<line x1="' . $padleft . '" y1="' . round($y, 2) . '" x2="'
+                . round($padleft + $plotw, 2) . '" y2="' . round($y, 2)
+                . '" stroke="#eee" stroke-width="1" stroke-dasharray="3,3"/>';
+            $out .= '<text x="' . ($padleft - 6) . '" y="' . round($y + 4, 2)
+                . '" text-anchor="end" font-size="10" fill="#888">'
+                . s(self::chart_format_value($v, $unit)) . '</text>';
+        }
+        return $out;
+    }
+
+    /**
+     * Render axis labels (X centred under the plot, Y rotated on the left edge).
+     *
+     * @param string $xlabel Bottom-axis label.
+     * @param string $ylabel Side-axis label.
+     * @param int $chartw Full chart width.
+     * @param int $h Full chart height.
+     * @param int $padleft Left padding.
+     * @param int $padtop Top padding.
+     * @param float $ploth Plot height.
+     * @return string SVG fragment.
+     */
+    private static function chart_axis_labels(
+        string $xlabel,
+        string $ylabel,
+        int $chartw,
+        int $h,
+        int $padleft,
+        int $padtop,
+        float $ploth
+    ): string {
+        $out = '';
+        if ($xlabel !== '') {
+            $out .= '<text x="' . round(($chartw + $padleft) / 2, 2) . '" y="' . ($h - 28)
+                . '" text-anchor="middle" font-size="12" fill="#555" font-style="italic">'
+                . s($xlabel) . '</text>';
+        }
+        if ($ylabel !== '') {
+            $cy = $padtop + $ploth / 2;
+            $out .= '<text x="14" y="' . round($cy, 2)
+                . '" text-anchor="middle" font-size="12" fill="#555" font-style="italic"'
+                . ' transform="rotate(-90 14 ' . round($cy, 2) . ')">' . s($ylabel) . '</text>';
+        }
+        return $out;
+    }
+
+    /**
+     * Inline horizontal legend for multi-series charts.
+     *
+     * @param array $series Series names.
+     * @param string $color Base colour from which per-series variants are derived.
+     * @param int $x Starting x coordinate.
+     * @param int $y Baseline y coordinate.
+     * @param int $count Total series count (for variant_color spread).
+     * @return string SVG fragment.
+     */
+    private static function chart_legend(array $series, string $color, int $x, int $y, int $count): string {
+        $out = '';
+        $cursor = $x;
+        foreach (array_values($series) as $s => $name) {
+            $fill = self::variant_color($color, $s, max(1, $count));
+            $out .= '<rect x="' . $cursor . '" y="' . ($y - 10) . '" width="12" height="12" rx="2" ry="2"'
+                . ' fill="' . s($fill) . '"></rect>';
+            $out .= '<text x="' . ($cursor + 18) . '" y="' . $y . '" font-size="11" fill="#333">'
+                . s($name) . '</text>';
+            // Approximate label width: 7px per char + padding.
+            $cursor += 28 + 7 * mb_strlen($name);
+        }
+        return $out;
+    }
+
+    /**
+     * SVG line chart with data points. Supports multi-series (one polyline
+     * per series), axis labels, unit-suffixed value labels, and a y-axis grid.
+     *
+     * @param array  $items Normalised items: [{label, values[], color}, ...].
+     * @param string $color Base line colour. Series 2..N derive from this.
+     * @param array  $opts  Layout / labelling options (see render_chart_bar).
      * @return string SVG wrapped in a div.
      */
-    private static function render_chart_line(array $items, string $color): string {
+    private static function render_chart_line(array $items, string $color, array $opts): string {
+        $series      = $opts['series'] ?? [];
+        $seriescount = max(1, count($series));
+        $unit        = (string) ($opts['unit'] ?? '');
+        $xlabel      = (string) ($opts['xlabel'] ?? '');
+        $ylabel      = (string) ($opts['ylabel'] ?? '');
+        $showvalues  = !empty($opts['showvalues']);
+
         $max = 0.0;
         foreach ($items as $it) {
-            $v = (float) ($it['value'] ?? 0);
-            if ($v > $max) {
-                $max = $v;
+            foreach (($it['values'] ?? []) as $v) {
+                if ((float) $v > $max) {
+                    $max = (float) $v;
+                }
             }
         }
         if ($max <= 0) {
             $max = 1.0;
         }
 
-        $w       = 640;
-        $h       = 260;
-        $padleft = 40;
+        $w       = 720;
+        $padleft = $ylabel !== '' ? 56 : 40;
         $padr    = 20;
         $padtop  = 20;
-        $padbot  = 40;
+        $padbot  = 48 + ($xlabel !== '' ? 18 : 0) + ($seriescount > 1 ? 24 : 0);
+        $ploth   = 240;
+        $h       = $padtop + $ploth + $padbot;
+        $plotw   = $w - $padleft - $padr;
+        $count   = max(1, count($items));
 
-        $plotw = $w - $padleft - $padr;
-        $ploth = $h - $padtop - $padbot;
-        $count = max(1, count($items));
+        $svg = self::chart_svg_open($w, $h);
+        $svg .= self::chart_axes($padleft, $padtop, $plotw, $ploth);
+        $svg .= self::chart_y_grid($padleft, $padtop, $plotw, $ploth, $max, $unit);
 
-        $points = [];
+        // Draw one polyline + dot set per series.
+        for ($s = 0; $s < $seriescount; $s++) {
+            $linecolor = self::variant_color($color, $s, $seriescount);
+            $points = [];
+            foreach (array_values($items) as $i => $it) {
+                $val = (float) ($it['values'][$s] ?? 0);
+                $x   = $padleft + ($count > 1 ? ($i / ($count - 1)) * $plotw : $plotw / 2);
+                $y   = $padtop + $ploth - ($val / $max) * $ploth;
+                $points[] = [$x, $y, $val];
+            }
+            $polyline = '';
+            foreach ($points as $p) {
+                $polyline .= round($p[0], 2) . ',' . round($p[1], 2) . ' ';
+            }
+            $svg .= '<polyline points="' . trim($polyline) . '" fill="none" stroke="'
+                . s($linecolor) . '" stroke-width="2.5" stroke-linecap="round"'
+                . ' stroke-linejoin="round"/>';
+            foreach ($points as $p) {
+                $svg .= '<circle cx="' . round($p[0], 2) . '" cy="' . round($p[1], 2)
+                    . '" r="4" fill="' . s($linecolor) . '"></circle>';
+                if ($showvalues) {
+                    $svg .= '<text x="' . round($p[0], 2) . '" y="' . (round($p[1], 2) - 8)
+                        . '" text-anchor="middle" font-size="11" fill="#333">'
+                        . s(self::chart_format_value($p[2], $unit)) . '</text>';
+                }
+            }
+        }
+
+        // Category labels under the x-axis (one per item).
         foreach (array_values($items) as $i => $it) {
-            $val = (float) ($it['value'] ?? 0);
-            $x   = $padleft + ($count > 1 ? ($i / ($count - 1)) * $plotw : $plotw / 2);
-            $y   = $padtop + $ploth - ($val / $max) * $ploth;
-            $points[] = [$x, $y, (string) ($it['label'] ?? ''), $val];
+            $x = $padleft + ($count > 1 ? ($i / ($count - 1)) * $plotw : $plotw / 2);
+            $svg .= '<text x="' . round($x, 2) . '" y="' . ($padtop + $ploth + 18)
+                . '" text-anchor="middle" font-size="11" fill="#666">'
+                . s((string) ($it['label'] ?? '')) . '</text>';
         }
 
-        $svg = '<svg viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="xMidYMid meet"'
-            . ' style="width:100% !important; max-width:100% !important; height:auto !important;"'
-            . ' xmlns="http://www.w3.org/2000/svg" role="img">';
-        // Axes.
-        $svg .= '<line x1="' . $padleft . '" y1="' . ($padtop + $ploth) . '" x2="' . ($w - $padr)
-            . '" y2="' . ($padtop + $ploth) . '" stroke="#ccc" stroke-width="1"/>';
-        $svg .= '<line x1="' . $padleft . '" y1="' . $padtop . '" x2="' . $padleft
-            . '" y2="' . ($padtop + $ploth) . '" stroke="#ccc" stroke-width="1"/>';
-
-        // Polyline.
-        $polyline = '';
-        foreach ($points as $p) {
-            $polyline .= round($p[0], 2) . ',' . round($p[1], 2) . ' ';
+        $svg .= self::chart_axis_labels($xlabel, $ylabel, $w, $h, $padleft, $padtop, $ploth);
+        if ($seriescount > 1) {
+            $svg .= self::chart_legend($series, $color, $padleft, $h - 14, $seriescount);
         }
-        $svg .= '<polyline points="' . trim($polyline) . '" fill="none" stroke="'
-            . s($color) . '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-
-        // Points + labels.
-        foreach ($points as $p) {
-            [$x, $y, $label, $val] = $p;
-            $svg .= '<circle cx="' . round($x, 2) . '" cy="' . round($y, 2) . '" r="4"'
-                . ' fill="' . s($color) . '"></circle>';
-            $svg .= '<text x="' . round($x, 2) . '" y="' . ($padtop + $ploth + 18) . '"'
-                . ' text-anchor="middle" font-size="11" fill="#666">' . s($label) . '</text>';
-            $svg .= '<text x="' . round($x, 2) . '" y="' . (round($y, 2) - 8) . '"'
-                . ' text-anchor="middle" font-size="11" fill="#333">' . s((string) $val) . '</text>';
-        }
-
         $svg .= '</svg>';
         return '<div class="byblos-chart-canvas">' . $svg . '</div>';
     }
 
     /**
-     * SVG pie or donut chart with an adjacent legend.
+     * SVG pie or donut chart with an adjacent legend. Slices are derived from
+     * the first series of each item; multi-series isn't meaningful for pie.
      *
-     * @param array  $items [{label, value}, ...]
+     * @param array  $items Normalised items: [{label, values[], color}, ...].
      * @param string $color Base slice colour (others derived).
      * @param bool   $donut If true, render as donut (hollow centre).
+     * @param string $unit  Unit suffix appended to the legend value (e.g. "%").
      * @return string SVG wrapped in a div.
      */
-    private static function render_chart_pie(array $items, string $color, bool $donut): string {
+    private static function render_chart_pie(array $items, string $color, bool $donut, string $unit = ''): string {
         $total = 0.0;
         foreach ($items as $it) {
-            $total += max(0, (float) ($it['value'] ?? 0));
+            $total += max(0, (float) ($it['values'][0] ?? 0));
         }
         if ($total <= 0) {
             $total = 1.0;
@@ -295,7 +635,8 @@ class section_helpers {
         $angle = -M_PI_2; // Start at top.
         $idx = 0;
         foreach ($items as $it) {
-            $val = max(0, (float) ($it['value'] ?? 0));
+            $val = max(0, (float) ($it['values'][0] ?? 0));
+            $override = (string) ($it['color'] ?? '');
             if ($val <= 0) {
                 $idx++;
                 continue;
@@ -310,7 +651,7 @@ class section_helpers {
             $x2 = $cx + $r * cos($a2);
             $y2 = $cy + $r * sin($a2);
 
-            $slicecolor = self::variant_color($color, $idx, max(1, $count));
+            $slicecolor = $override !== '' ? $override : self::variant_color($color, $idx, max(1, $count));
 
             if ($donut) {
                 $xi1 = $cx + $rin * cos($a1);
@@ -341,15 +682,19 @@ class section_helpers {
         $ly = 30;
         $idx = 0;
         foreach ($items as $it) {
-            $label = (string) ($it['label'] ?? '');
-            $val   = (float) ($it['value'] ?? 0);
-            $pct   = round(($val / $total) * 100, 1);
-            $slicecolor = self::variant_color($color, $idx, max(1, $count));
+            $label    = (string) ($it['label'] ?? '');
+            $val      = (float) ($it['values'][0] ?? 0);
+            $pct      = round(($val / $total) * 100, 1);
+            $override = (string) ($it['color'] ?? '');
+            $slicecolor = $override !== '' ? $override : self::variant_color($color, $idx, max(1, $count));
 
             $svg .= '<rect x="' . $lx . '" y="' . $ly . '" width="14" height="14" rx="2" ry="2"'
                 . ' fill="' . s($slicecolor) . '"></rect>';
+            // Show "label — value[unit] (pct%)" so the actual magnitude is visible
+            // alongside the percentage share.
+            $tail = ' — ' . s(self::chart_format_value($val, $unit)) . ' (' . s((string) $pct) . '%)';
             $svg .= '<text x="' . ($lx + 22) . '" y="' . ($ly + 12) . '" font-size="12"'
-                . ' fill="#333">' . s($label) . ' — ' . s((string) $pct) . '%</text>';
+                . ' fill="#333">' . s($label) . $tail . '</text>';
             $ly += 22;
             $idx++;
         }

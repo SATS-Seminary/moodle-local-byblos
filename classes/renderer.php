@@ -375,6 +375,30 @@ class renderer {
      * @param string $themekey The page's theme key.
      * @return string Rendered HTML.
      */
+    /**
+     * Clamp a skill level into the 1..5 named-level range.
+     *
+     * Pre-Mar-2026 pages stored a 0..100 percentage in this column. Treat any
+     * value above 5 as the top level (5 = Expert) so legacy pages still render
+     * a recognisable bar rather than overflowing.
+     *
+     * @param int $level Stored level value.
+     * @return int 1..5 inclusive.
+     */
+    public static function clamp_skill_level(int $level): int {
+        if ($level > 5) {
+            return 5;
+        }
+        return max(1, min(5, $level));
+    }
+
+    /**
+     * Render a skills section using the 1..5 named-proficiency scale.
+     *
+     * @param array $config Decoded configdata.
+     * @param string $themekey Page theme key.
+     * @return string Rendered HTML.
+     */
     public static function render_skills_section(array $config, string $themekey): string {
         $heading = $config['heading'] ?? get_string('skills', 'local_byblos');
         $skills = $config['skills'] ?? [];
@@ -393,19 +417,23 @@ class renderer {
             );
         } else {
             foreach ($skills as $skill) {
-                $level = max(0, min(100, (int) ($skill['level'] ?? 0)));
+                $level = self::clamp_skill_level((int) ($skill['level'] ?? 1));
+                // Map 1..5 onto a 20/40/60/80/100 percent bar fill.
+                $pct = $level * 20;
+                $levellabel = get_string('skill_level_' . $level, 'local_byblos');
                 $label = \html_writer::div(
                     \html_writer::tag('span', s($skill['name'] ?? '')) .
-                    \html_writer::tag('span', $level . '%'),
+                    \html_writer::tag('span', $levellabel, ['class' => 'byblos-skill-level-name']),
                     'd-flex justify-content-between mb-1 byblos-skill-label'
                 );
                 $bar = \html_writer::div(
                     \html_writer::div('', 'progress-bar', [
-                        'style' => "width:{$level}% !important; background-color:{$accentcolor} !important;",
+                        'style' => "width:{$pct}% !important; background-color:{$accentcolor} !important;",
                         'role' => 'progressbar',
-                        'aria-valuenow' => $level,
-                        'aria-valuemin' => '0',
-                        'aria-valuemax' => '100',
+                        'aria-valuenow' => (string) $level,
+                        'aria-valuemin' => '1',
+                        'aria-valuemax' => '5',
+                        'aria-label' => $levellabel,
                     ]),
                     'progress byblos-skill-bar'
                 );
@@ -742,7 +770,18 @@ class renderer {
             );
         }
 
-        return \html_writer::div($content, 'byblos-section-custom');
+        // Pass through Moodle's HTMLPurifier policy. This strips <script>,
+        // event handlers, javascript: URLs, iframe/object/embed, meta refresh,
+        // and tightens inline style — see the threat-model commentary in the
+        // section_external add_section() guard.
+        $clean = format_text($content, FORMAT_HTML, [
+            'noclean' => false,
+            'context' => \context_system::instance(),
+            'allowid' => false,
+            'overflowdiv' => false,
+        ]);
+
+        return \html_writer::div($clean, 'byblos-section-custom');
     }
 
     /**

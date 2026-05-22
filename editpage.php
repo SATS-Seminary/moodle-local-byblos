@@ -103,6 +103,13 @@ $sectiontypes = [
 ];
 // phpcs:enable moodle.Files.LineLength
 
+// The custom-HTML tile is hidden for users who don't hold the gating capability
+// (default: editingteacher + manager). The WS add_section enforces the same
+// check, so this is purely a UI niceness.
+if (!has_capability('local/byblos:editcustomhtml', $context)) {
+    $sectiontypes = array_values(array_filter($sectiontypes, fn($s) => $s['type'] !== 'custom'));
+}
+
 // Theme definitions for the theme picker — derived from theme::get_all() so the picker
 // stays in sync with the canonical theme registry.
 $themes = [];

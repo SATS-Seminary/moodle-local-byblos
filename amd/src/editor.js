@@ -298,6 +298,146 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
     }
 
     /**
+     * Render an HTML string into syntax-highlighted markup for the code-editor
+     * shade pane. Walks the input character-by-character producing token spans
+     * for comments, tags, attribute names, attribute values, and text.
+     * Output is safe to drop straight into innerHTML because we HTML-escape
+     * every literal character on the way out.
+     *
+     * @param {string} src Raw HTML the user is editing.
+     * @returns {string} Coloured HTML for the shade overlay.
+     */
+    function highlightHtml(src) {
+        src = src || '';
+        var out = '';
+        var i = 0;
+        var n = src.length;
+        var esc = function(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        while (i < n) {
+            // Comment: <!-- ... -->
+            if (src.substr(i, 4) === '<!--') {
+                var end = src.indexOf('-->', i + 4);
+                if (end === -1) { end = n; } else { end += 3; }
+                out += '<span class="ce-c">' + esc(src.substring(i, end)) + '</span>';
+                i = end;
+                continue;
+            }
+            // Doctype: <!DOCTYPE …>
+            if (src.substr(i, 2) === '<!') {
+                var endd = src.indexOf('>', i);
+                if (endd === -1) { endd = n; } else { endd += 1; }
+                out += '<span class="ce-d">' + esc(src.substring(i, endd)) + '</span>';
+                i = endd;
+                continue;
+            }
+            // Open or close tag.
+            if (src.charAt(i) === '<') {
+                var tagend = src.indexOf('>', i);
+                if (tagend === -1) {
+                    out += esc(src.substring(i));
+                    break;
+                }
+                var tag = src.substring(i, tagend + 1);
+                // Tokenise inside the tag: '<', tagname, attrs, '>'.
+                var inner = tag.slice(1, -1); // Without < and >.
+                var isClose = inner.charAt(0) === '/';
+                var nameMatch = inner.match(/^\/?\s*([a-zA-Z][\w:-]*)/);
+                var rendered = '&lt;';
+                if (isClose) { rendered += '/'; }
+                if (nameMatch) {
+                    rendered += '<span class="ce-t">' + esc(nameMatch[1]) + '</span>';
+                    var rest = inner.substr(nameMatch[0].length);
+                    // Walk attributes inside the rest: name (= "value")?
+                    rendered += highlightAttrs(rest, esc);
+                } else {
+                    rendered += esc(inner);
+                }
+                rendered += '&gt;';
+                out += '<span class="ce-tagwrap">' + rendered + '</span>';
+                i = tagend + 1;
+                continue;
+            }
+            // Plain text until next '<'.
+            var lt = src.indexOf('<', i);
+            if (lt === -1) {
+                out += esc(src.substring(i));
+                break;
+            }
+            out += esc(src.substring(i, lt));
+            i = lt;
+        }
+        return out + '\n'; // Trailing newline so the shade pane matches the textarea's last empty line.
+    }
+
+    /**
+     * Tokenise the attribute portion of an HTML tag for highlightHtml.
+     *
+     * @param {string} src The text between the tag name and the closing '>'.
+     * @param {Function} esc HTML-escape helper.
+     * @returns {string} Highlighted markup.
+     */
+    function highlightAttrs(src, esc) {
+        var out = '';
+        var re = /\s+([a-zA-Z_:][\w:.-]*)(\s*=\s*("[^"]*"|'[^']*'|[^\s'">]+))?/g;
+        var m;
+        var lastEnd = 0;
+        while ((m = re.exec(src)) !== null) {
+            out += esc(src.substring(lastEnd, m.index));
+            out += ' <span class="ce-a">' + esc(m[1]) + '</span>';
+            if (m[2]) {
+                var eqAndVal = m[2];
+                var valIdx = eqAndVal.indexOf('=');
+                out += esc(eqAndVal.substring(0, valIdx + 1));
+                var val = eqAndVal.substring(valIdx + 1).replace(/^\s+/, '');
+                var prefix = eqAndVal.substring(valIdx + 1, valIdx + 1 + (eqAndVal.length - valIdx - 1 - val.length));
+                out += esc(prefix);
+                out += '<span class="ce-s">' + esc(val) + '</span>';
+            }
+            lastEnd = m.index + m[0].length;
+        }
+        out += esc(src.substring(lastEnd));
+        return out;
+    }
+
+    /**
+     * Wire every .bse-codeedit inside $panel: hook input/scroll events on the
+     * textarea so the shaded preview underneath stays in sync.
+     *
+     * @param {jQuery} $panel
+     */
+    function initCodeEditors($panel) {
+        $panel.find('.bse-codeedit').each(function() {
+            var $wrap = $(this);
+            var $ta = $wrap.find('.bse-codeedit-input');
+            var $shade = $wrap.find('.bse-codeedit-shade code');
+            var sync = function() {
+                $shade.html(highlightHtml($ta.val()));
+            };
+            var syncScroll = function() {
+                $wrap.find('.bse-codeedit-shade').scrollTop($ta.scrollTop());
+                $wrap.find('.bse-codeedit-shade').scrollLeft($ta.scrollLeft());
+            };
+            $ta.on('input', sync);
+            $ta.on('scroll', syncScroll);
+            // Tab in textarea inserts two spaces instead of moving focus.
+            $ta.on('keydown', function(ev) {
+                if (ev.key === 'Tab') {
+                    ev.preventDefault();
+                    var el = $ta[0];
+                    var start = el.selectionStart;
+                    var end = el.selectionEnd;
+                    el.value = el.value.substring(0, start) + '  ' + el.value.substring(end);
+                    el.selectionStart = el.selectionEnd = start + 2;
+                    sync();
+                }
+            });
+            sync();
+        });
+    }
+
+    /**
      * Attach TinyMCE to every textarea.byblos-rich inside $panel.
      * Uses the Moodle Tiny loader with a lightweight toolbar — enough for body copy.
      *
@@ -392,24 +532,20 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
                     buildField('Reverse layout (image left)', 'bse_reversed', cfg.reversed, 'checkbox');
                 break;
             case 'gallery':
-                var cols = cfg.columns || 3;
-                h = '<div class="form-group"><label for="bse_columns">Columns</label>' +
-                    '<select id="bse_columns" class="custom-select custom-select-sm">' +
-                    '<option value="2"' + (cols === 2 ? ' selected' : '') + '>2</option>' +
-                    '<option value="3"' + (cols === 3 ? ' selected' : '') + '>3</option>' +
-                    '<option value="4"' + (cols === 4 ? ' selected' : '') + '>4</option>' +
-                    '</select></div>';
-                h += '<label class="font-weight-bold" style="font-size:0.8rem !important;">Gallery Items</label>';
-                h += '<div id="bse_gallery_items"></div>';
-                h += '<button type="button" class="btn btn-outline-secondary btn-sm mt-1 bse-gallery-add">' +
-                    '<i class="fa fa-plus"></i> Add Item</button>';
+                h = buildGalleryEditor(cfg);
                 break;
             case 'skills':
                 h = buildField('Heading', 'bse_heading', cfg.heading);
                 var skillsText = (cfg.skills || []).map(function(s) {
                     return s.name + ':' + s.level;
                 }).join('\n');
-                h += buildField('Skills (one per line: Name:Level 0-100)', 'bse_skills', skillsText, 'textarea');
+                h += buildField(
+                    'Skills (one per line: Name:Level 1-5 — '
+                        + '1=Novice 2=Beginner 3=Intermediate 4=Proficient 5=Expert)',
+                    'bse_skills',
+                    skillsText,
+                    'textarea'
+                );
                 break;
             case 'timeline':
                 h = buildField('Heading', 'bse_heading', cfg.heading);
@@ -458,24 +594,23 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
                     buildField('Spacing', 'bse_spacing', cfg.spacing || '2rem');
                 break;
             case 'custom':
-                h = '<div class="alert alert-warning small mb-2">' +
-                    '<i class="fa fa-exclamation-triangle"></i> Raw HTML rendered without sanitisation.</div>' +
-                    buildField('HTML Content', 'bse_html', content, 'rich');
+                h = '<div class="alert alert-info small mb-2">' +
+                    '<i class="fa fa-shield"></i> HTML is sanitised on save: ' +
+                    '<code>&lt;script&gt;</code>, event handlers (<code>onclick=…</code>), ' +
+                    '<code>javascript:</code> URLs and <code>&lt;iframe&gt;</code>/' +
+                    '<code>&lt;object&gt;</code>/<code>&lt;embed&gt;</code>' +
+                    ' are stripped before the section is rendered.' +
+                    '</div>' +
+                    '<label class="font-weight-bold" style="font-size:0.8rem !important;" for="bse_html">' +
+                    'HTML</label>' +
+                    '<div class="bse-codeedit">' +
+                        '<pre class="bse-codeedit-shade" aria-hidden="true"><code></code></pre>' +
+                        '<textarea id="bse_html" class="bse-codeedit-input" spellcheck="false">' +
+                        escHtml(content || '') + '</textarea>' +
+                    '</div>';
                 break;
             case 'chart':
-                h = buildField('Heading', 'bse_heading', cfg.heading);
-                h += '<div class="form-group"><label for="bse_chart_type">Chart type</label>' +
-                    '<select id="bse_chart_type" class="custom-select custom-select-sm">' +
-                    '<option value="bar"' + ((cfg.type || 'bar') === 'bar' ? ' selected' : '') + '>Bar</option>' +
-                    '<option value="line"' + (cfg.type === 'line' ? ' selected' : '') + '>Line</option>' +
-                    '<option value="pie"' + (cfg.type === 'pie' ? ' selected' : '') + '>Pie</option>' +
-                    '<option value="donut"' + (cfg.type === 'donut' ? ' selected' : '') + '>Donut</option>' +
-                    '</select></div>';
-                h += buildField('Base Colour', 'bse_chart_color', cfg.color || '#0d6efd', 'color');
-                h += '<label class="font-weight-bold" style="font-size:0.8rem !important;">Data points</label>';
-                h += '<div id="bse_chart_items"></div>';
-                h += '<button type="button" class="btn btn-outline-secondary btn-sm mt-1 bse-chart-add">' +
-                    '<i class="fa fa-plus"></i> Add data point</button>';
+                h = buildChartEditor(cfg);
                 break;
             case 'cloud':
                 h = buildField('Heading', 'bse_heading', cfg.heading);
@@ -642,7 +777,10 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
                     return s.trim();
                 }).map(function(line) {
                     var parts = line.split(':');
-                    return {name: parts[0].trim(), level: parseInt(parts[1]) || 0};
+                    var lvl = parseInt(parts[1], 10);
+                    if (isNaN(lvl) || lvl < 1) { lvl = 1; }
+                    if (lvl > 5) { lvl = 5; }
+                    return {name: parts[0].trim(), level: lvl};
                 });
                 cfg = {heading: v('bse_heading'), skills: skills};
                 break;
@@ -692,10 +830,22 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
                 content = v('bse_html');
                 break;
             case 'chart':
+                var seriesRaw = (v('bse_chart_series') || '').trim();
+                var seriesList = seriesRaw
+                    ? seriesRaw.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; })
+                    : [];
                 cfg = {
                     heading: v('bse_heading'),
                     type: v('bse_chart_type') || 'bar',
+                    orientation: v('bse_chart_orientation') || 'horizontal',
+                    sort: v('bse_chart_sort') || 'input',
                     color: v('bse_chart_color') || '#0d6efd',
+                    x_label: v('bse_chart_xlabel') || '',
+                    y_label: v('bse_chart_ylabel') || '',
+                    unit_suffix: v('bse_chart_unit') || '',
+                    caption: v('bse_chart_caption') || '',
+                    show_values: $panel.find('#bse_chart_showvalues').is(':checked'),
+                    series: seriesList,
                     items: collectChartItems($panel)
                 };
                 break;
@@ -762,36 +912,420 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
      * @param {jQuery} $panel
      * @returns {Array<{label: string, value: number}>}
      */
+    /**
+     * Wire up the chart editor: tabs, visual type picker, drag-to-reorder on
+     * the data table, and a debounced live preview that re-renders via the
+     * local_byblos_render_chart_preview WS.
+     *
+     * @param {jQuery} $panel The section edit panel.
+     * @param {Object} cfg Initial configdata.
+     */
+    function initChartEditor($panel, cfg) {
+        var $chartContainer = $panel.find('#bse_chart_items');
+        (cfg.items || []).forEach(function(item) {
+            addChartItemRow($chartContainer, item, $panel);
+        });
+        if ($chartContainer.children().length === 0) {
+            addChartItemRow($chartContainer, {}, $panel);
+            addChartItemRow($chartContainer, {}, $panel);
+        }
+        $panel.find('.bse-chart-add').on('click', function() {
+            addChartItemRow($chartContainer, {}, $panel);
+            schedulePreviewRefresh($panel);
+        });
+
+        // Tab switching.
+        $panel.find('.bse-chart-tabs .nav-link').on('click', function(ev) {
+            ev.preventDefault();
+            var key = $(this).attr('data-tab');
+            $panel.find('.bse-chart-tabs .nav-link').removeClass('active');
+            $(this).addClass('active');
+            $panel.find('.bse-chart-tab-pane').removeClass('active');
+            $panel.find('#bse-chart-' + key).addClass('active');
+        });
+
+        // Visual chart-type picker. Tiles toggle the hidden #bse_chart_type
+        // input that the cfg collector reads.
+        $panel.find('.bse-chart-typetile').on('click', function() {
+            var t = $(this).attr('data-type');
+            $panel.find('.bse-chart-typetile').removeClass('active');
+            $(this).addClass('active');
+            $panel.find('#bse_chart_type').val(t);
+            $panel.find('.bse-chart-orientation').toggleClass('d-none', t !== 'bar');
+            schedulePreviewRefresh($panel);
+        });
+
+        // Series-count change rebuilds rows to match.
+        $panel.find('#bse_chart_series').on('change blur', function() {
+            rebuildChartItemRows($panel);
+            schedulePreviewRefresh($panel);
+        });
+
+        // Drag-to-reorder data rows.
+        var $tbody = $panel.find('#bse_chart_items');
+        $tbody.on('dragstart', '.bse-chart-item', function(ev) {
+            var oe = ev.originalEvent || ev;
+            $(this).addClass('bse-ci-dragging');
+            if (oe.dataTransfer) {
+                oe.dataTransfer.effectAllowed = 'move';
+                // Some browsers refuse to start a drag without payload.
+                oe.dataTransfer.setData('text/plain', 'row');
+            }
+        });
+        $tbody.on('dragend', '.bse-chart-item', function() {
+            $(this).removeClass('bse-ci-dragging');
+            schedulePreviewRefresh($panel);
+        });
+        $tbody.on('dragover', '.bse-chart-item', function(ev) {
+            ev.preventDefault();
+            var $dragging = $tbody.find('.bse-ci-dragging');
+            if (!$dragging.length || $dragging[0] === this) {
+                return;
+            }
+            var rect = this.getBoundingClientRect();
+            var after = ((ev.originalEvent || ev).clientY - rect.top) > rect.height / 2;
+            if (after) {
+                $(this).after($dragging);
+            } else {
+                $(this).before($dragging);
+            }
+        });
+
+        // Anything in the form changes → debounced preview refresh.
+        $panel.find('.bse-chart-editor-form').on('input change', function() {
+            schedulePreviewRefresh($panel);
+        });
+
+        // Kick off an initial preview render.
+        schedulePreviewRefresh($panel, 0);
+    }
+
+    /** @type {?number} Debounce timer for the chart preview refresh. */
+    var chartPreviewTimer = null;
+
+    /**
+     * Refresh the chart preview pane from the current form state, debounced so
+     * fast typing doesn't fire a WS call on every keystroke.
+     *
+     * @param {jQuery} $panel The section edit panel.
+     * @param {number=} delay Optional override of the debounce window (ms).
+     */
+    function schedulePreviewRefresh($panel, delay) {
+        if (delay === undefined) { delay = 220; }
+        if (chartPreviewTimer) {
+            clearTimeout(chartPreviewTimer);
+        }
+        chartPreviewTimer = setTimeout(function() {
+            chartPreviewTimer = null;
+            refreshChartPreview($panel);
+        }, delay);
+    }
+
+    /**
+     * Build the current configdata from the form state, send it to the
+     * render_chart_preview WS, and drop the resulting SVG into the preview pane.
+     *
+     * @param {jQuery} $panel The section edit panel.
+     */
+    function refreshChartPreview($panel) {
+        var $target = $panel.find('.bse-chart-preview-content');
+        if (!$target.length) {
+            return;
+        }
+        var seriesRaw = ($panel.find('#bse_chart_series').val() || '').trim();
+        var seriesList = seriesRaw
+            ? seriesRaw.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; })
+            : [];
+        var cfg = {
+            heading: $panel.find('#bse_heading').val() || '',
+            type: $panel.find('#bse_chart_type').val() || 'bar',
+            orientation: $panel.find('#bse_chart_orientation').val() || 'horizontal',
+            sort: $panel.find('#bse_chart_sort').val() || 'input',
+            color: $panel.find('#bse_chart_color').val() || '#0d6efd',
+            x_label: $panel.find('#bse_chart_xlabel').val() || '',
+            y_label: $panel.find('#bse_chart_ylabel').val() || '',
+            unit_suffix: $panel.find('#bse_chart_unit').val() || '',
+            caption: $panel.find('#bse_chart_caption').val() || '',
+            show_values: $panel.find('#bse_chart_showvalues').is(':checked'),
+            series: seriesList,
+            items: collectChartItems($panel)
+        };
+        callExternal('local_byblos_render_chart_preview', {
+            configdata: JSON.stringify(cfg)
+        }).then(function(res) {
+            $target.html(res && res.html ? res.html : '<p class="text-muted small mb-0">Empty preview.</p>');
+            return res;
+        }).catch(function() {
+            $target.html('<p class="text-danger small mb-0">Preview failed to render.</p>');
+        });
+    }
+
+    /**
+     * Build the chart editor markup: two-pane layout with a tabbed form on the
+     * left (Data / Appearance / Labels / Advanced) and a live preview pane on
+     * the right.
+     *
+     * @param {Object} cfg Existing chart configdata.
+     * @returns {string} HTML string.
+     */
+    function buildChartEditor(cfg) {
+        cfg = cfg || {};
+        var type = cfg.type || 'bar';
+        var orientation = cfg.orientation || 'horizontal';
+        var sort = cfg.sort || 'input';
+        var series = (cfg.series || []).join(', ');
+        var showValues = (cfg.show_values === undefined || cfg.show_values);
+
+        var typeTile = function(key, label, iconSvg) {
+            return '<button type="button" class="bse-chart-typetile' + (type === key ? ' active' : '') + '"'
+                + ' data-type="' + key + '" title="' + escHtml(label) + '">'
+                + iconSvg
+                + '<span class="bse-chart-typetile-label">' + escHtml(label) + '</span>'
+                + '</button>';
+        };
+
+        // Inline SVG glyphs so we don't depend on an icon font for the type tiles.
+        var iconBar = '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true">'
+            + '<rect x="2"  y="10" width="5" height="12" rx="1" fill="currentColor"/>'
+            + '<rect x="10" y="6"  width="5" height="16" rx="1" fill="currentColor"/>'
+            + '<rect x="18" y="14" width="5" height="8"  rx="1" fill="currentColor"/>'
+            + '<rect x="26" y="3"  width="5" height="19" rx="1" fill="currentColor"/></svg>';
+        var iconLine = '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true" fill="none"'
+            + ' stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">'
+            + '<polyline points="2,20 9,12 16,16 23,6 30,10"/></svg>';
+        var iconPie = '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true">'
+            + '<circle cx="16" cy="12" r="10" fill="currentColor" opacity="0.35"/>'
+            + '<path d="M16 12 L16 2 A10 10 0 0 1 24.66 17 Z" fill="currentColor"/></svg>';
+        var iconDonut = '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true">'
+            + '<path d="M16 2 A10 10 0 1 1 6 12 H10 A6 6 0 1 0 16 6 Z" fill="currentColor"/>'
+            + '<path d="M16 2 A10 10 0 0 1 25.5 18 L21 15.4 A6 6 0 0 0 16 6 Z" fill="currentColor" opacity="0.55"/></svg>';
+
+        // Form pane.
+        var form =
+            '<ul class="nav nav-tabs nav-tabs-sm bse-chart-tabs" role="tablist">' +
+                '<li class="nav-item"><a class="nav-link active" data-tab="data" href="#bse-chart-data">Data</a></li>' +
+                '<li class="nav-item"><a class="nav-link" data-tab="appearance" href="#bse-chart-appearance">Appearance</a></li>' +
+                '<li class="nav-item"><a class="nav-link" data-tab="labels" href="#bse-chart-labels">Labels</a></li>' +
+                '<li class="nav-item"><a class="nav-link" data-tab="advanced" href="#bse-chart-advanced">Advanced</a></li>' +
+            '</ul>' +
+            '<div class="bse-chart-tabcontent">' +
+
+                // Tab: Data ----------------------------------------------------
+                '<div class="bse-chart-tab-pane active" id="bse-chart-data">' +
+                    '<table class="table table-sm bse-chart-table">' +
+                        '<thead><tr>' +
+                            '<th class="bse-ct-handle"></th>' +
+                            '<th>Label</th>' +
+                            '<th>Value(s)</th>' +
+                            '<th>Colour</th>' +
+                            '<th></th>' +
+                        '</tr></thead>' +
+                        '<tbody id="bse_chart_items"></tbody>' +
+                    '</table>' +
+                    '<button type="button" class="btn btn-outline-secondary btn-sm bse-chart-add">' +
+                        '<i class="fa fa-plus"></i> Add data point</button>' +
+                '</div>' +
+
+                // Tab: Appearance ----------------------------------------------
+                '<div class="bse-chart-tab-pane" id="bse-chart-appearance">' +
+                    '<label class="font-weight-bold small d-block mb-2">Chart type</label>' +
+                    '<div class="bse-chart-typepicker mb-3">' +
+                        typeTile('bar', 'Bar', iconBar) +
+                        typeTile('line', 'Line', iconLine) +
+                        typeTile('pie', 'Pie', iconPie) +
+                        typeTile('donut', 'Donut', iconDonut) +
+                        '<input type="hidden" id="bse_chart_type" value="' + escHtml(type) + '">' +
+                    '</div>' +
+                    '<div class="form-group bse-chart-orientation' +
+                        (type === 'bar' ? '' : ' d-none') + '">' +
+                        '<label for="bse_chart_orientation">Bar orientation</label>' +
+                        '<select id="bse_chart_orientation" class="custom-select custom-select-sm">' +
+                            '<option value="horizontal"' + (orientation === 'horizontal' ? ' selected' : '')
+                                + '>Horizontal</option>' +
+                            '<option value="vertical"' + (orientation === 'vertical' ? ' selected' : '')
+                                + '>Vertical</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label for="bse_chart_sort">Sort order</label>' +
+                        '<select id="bse_chart_sort" class="custom-select custom-select-sm">' +
+                            '<option value="input"' + (sort === 'input' ? ' selected' : '')
+                                + '>As entered</option>' +
+                            '<option value="desc"' + (sort === 'desc' ? ' selected' : '')
+                                + '>Largest first</option>' +
+                            '<option value="asc"' + (sort === 'asc' ? ' selected' : '')
+                                + '>Smallest first</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label for="bse_chart_color">Palette colour</label>' +
+                        '<input type="color" class="form-control form-control-sm" id="bse_chart_color"' +
+                            ' value="' + escHtml(cfg.color || '#0d6efd') + '">' +
+                        '<small class="form-text text-muted">' +
+                            'Default for every item; per-row pickers override it. Also seeds the palette' +
+                            ' for multi-series and pie/donut charts.' +
+                        '</small>' +
+                    '</div>' +
+                '</div>' +
+
+                // Tab: Labels --------------------------------------------------
+                '<div class="bse-chart-tab-pane" id="bse-chart-labels">' +
+                    buildField('Heading', 'bse_heading', cfg.heading) +
+                    buildField('X-axis label', 'bse_chart_xlabel', cfg.x_label || '') +
+                    buildField('Y-axis label', 'bse_chart_ylabel', cfg.y_label || '') +
+                    buildField('Unit suffix (e.g. %, hrs, $)', 'bse_chart_unit', cfg.unit_suffix || '') +
+                    buildField('Caption / source', 'bse_chart_caption', cfg.caption || '') +
+                '</div>' +
+
+                // Tab: Advanced ------------------------------------------------
+                '<div class="bse-chart-tab-pane" id="bse-chart-advanced">' +
+                    buildField(
+                        'Series names (comma-separated; leave empty for single series)',
+                        'bse_chart_series',
+                        series
+                    ) +
+                    '<div class="form-check mb-2">' +
+                        '<input type="checkbox" class="form-check-input" id="bse_chart_showvalues"' +
+                            (showValues ? ' checked' : '') + '>' +
+                        '<label class="form-check-label" for="bse_chart_showvalues">' +
+                            'Show numeric values on the chart</label>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
+        // Preview pane.
+        var preview =
+            '<div class="bse-chart-preview-header">' +
+                '<i class="fa fa-eye"></i> Live preview' +
+            '</div>' +
+            '<div class="bse-chart-preview-content">' +
+                '<p class="text-muted small mb-0">Edit any field — the chart re-renders here.</p>' +
+            '</div>';
+
+        return '<div class="bse-chart-editor">' +
+            '<div class="bse-chart-editor-form">' + form + '</div>' +
+            '<div class="bse-chart-editor-preview">' + preview + '</div>' +
+        '</div>';
+    }
+
+    /**
+     * Collect the data-point rows from the chart edit panel.
+     *
+     * Each row produces either {label, value, color?} (single-series) or
+     * {label, values[], color?} (multi-series). Empty rows are dropped.
+     *
+     * @param {jQuery} $panel The section edit panel.
+     * @returns {Array<Object>}
+     */
     function collectChartItems($panel) {
         var items = [];
         $panel.find('.bse-chart-item').each(function() {
             var $item = $(this);
             var label = $item.find('.bse-ci-label').val() || '';
-            var value = parseFloat($item.find('.bse-ci-value').val());
-            if (label || !isNaN(value)) {
-                items.push({label: label, value: isNaN(value) ? 0 : value});
+            var $values = $item.find('.bse-ci-value');
+            var values = [];
+            $values.each(function() {
+                var v = parseFloat($(this).val());
+                values.push(isNaN(v) ? 0 : v);
+            });
+            var color = ($item.find('.bse-ci-color').val() || '').trim();
+            // Treat the default base colour as "no override" so we don't bake
+            // it into every saved item.
+            if (color.toLowerCase() === ($panel.find('#bse_chart_color').val() || '').toLowerCase()) {
+                color = '';
             }
+            if (!label && values.every(function(v) { return v === 0; })) {
+                return;
+            }
+            var entry = {label: label};
+            if (values.length <= 1) {
+                entry.value = values[0] || 0;
+            } else {
+                entry.values = values;
+            }
+            if (color) {
+                entry.color = color;
+            }
+            items.push(entry);
         });
         return items;
     }
 
     /**
-     * Append a chart data-point row to the container.
+     * Return the number of value inputs each chart row should expose, based on
+     * the comma-separated series field. Always at least 1.
+     * @param {jQuery} $panel
+     * @returns {number}
+     */
+    function chartSeriesCount($panel) {
+        var raw = ($panel.find('#bse_chart_series').val() || '').trim();
+        if (!raw) { return 1; }
+        return raw.split(',').filter(function(s) { return s.trim() !== ''; }).length || 1;
+    }
+
+    /**
+     * Re-render every chart item row to match the current series count.
+     * Preserves existing label / values / colour where possible.
+     * @param {jQuery} $panel
+     */
+    function rebuildChartItemRows($panel) {
+        var existing = collectChartItems($panel);
+        var $container = $panel.find('#bse_chart_items');
+        $container.empty();
+        if (existing.length === 0) {
+            // Seed two empty rows so the editor isn't blank.
+            addChartItemRow($container, {}, $panel);
+            addChartItemRow($container, {}, $panel);
+            return;
+        }
+        existing.forEach(function(item) {
+            addChartItemRow($container, item, $panel);
+        });
+    }
+
+    /**
+     * Append a chart data-point row to the container. The row exposes one
+     * value input per series plus an optional colour override.
      * @param {jQuery} $container
      * @param {Object} item
+     * @param {jQuery} $panel
      */
-    function addChartItemRow($container, item) {
+    function addChartItemRow($container, item, $panel) {
         item = item || {};
-        var $row = $(
-            '<div class="bse-chart-item d-flex align-items-center mb-1" style="gap:0.4rem;">' +
-            '<input type="text" class="form-control form-control-sm bse-ci-label" placeholder="Label" value="' +
-            escHtml(item.label || '') + '">' +
-            '<input type="number" step="any" class="form-control form-control-sm bse-ci-value" ' +
-            'placeholder="Value" style="max-width:110px;" value="' +
-            escHtml((item.value !== null && item.value !== undefined) ? String(item.value) : '') + '">' +
-            '<button type="button" class="btn btn-link btn-sm text-danger p-0 bse-ci-remove">' +
-            '<i class="fa fa-times"></i></button></div>'
-        );
+        var seriescount = chartSeriesCount($panel);
+        var values = [];
+        if (Array.isArray(item.values)) {
+            values = item.values.slice();
+        } else if (item.value !== undefined && item.value !== null) {
+            values = [item.value];
+        }
+        while (values.length < seriescount) { values.push(''); }
+        values = values.slice(0, seriescount);
+
+        var valueCells = '';
+        values.forEach(function(v, idx) {
+            valueCells += '<input type="number" step="any"'
+                + ' class="form-control form-control-sm bse-ci-value"'
+                + ' placeholder="Value' + (seriescount > 1 ? ' ' + (idx + 1) : '') + '"'
+                + ' value="'
+                + escHtml((v !== null && v !== undefined && v !== '') ? String(v) : '') + '">';
+        });
+
+        var html = '<tr class="bse-chart-item" draggable="true">'
+            + '<td class="bse-ci-handle" title="Drag to reorder">'
+                + '<i class="fa fa-bars"></i></td>'
+            + '<td><input type="text" class="form-control form-control-sm bse-ci-label"'
+                + ' placeholder="Label" value="' + escHtml(item.label || '') + '"></td>'
+            + '<td class="bse-ci-values">' + valueCells + '</td>'
+            + '<td><input type="color" class="form-control form-control-sm bse-ci-color"'
+                + ' value="' + escHtml(item.color || '#0d6efd')
+                + '" title="Per-row colour override"></td>'
+            + '<td class="bse-ci-actions">'
+                + '<button type="button" class="btn btn-link btn-sm text-danger p-0 bse-ci-remove"'
+                + ' title="Remove row"><i class="fa fa-times"></i></button>'
+            + '</td>'
+            + '</tr>';
+        var $row = $(html);
         $row.find('.bse-ci-remove').on('click', function() {
             $row.remove();
         });
@@ -1260,60 +1794,280 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
     }
 
     /**
-     * Collect gallery items from the edit panel.
-     * @param {jQuery} $panel
-     * @returns {Array}
+     * Build the gallery editor markup: a column-count button group, a visual
+     * thumbnail grid that mirrors the published layout, and a detail panel
+     * that expands inline below the grid when a tile is selected.
+     *
+     * @param {Object} cfg Existing gallery configdata.
+     * @returns {string} HTML string.
+     */
+    function buildGalleryEditor(cfg) {
+        cfg = cfg || {};
+        var cols = parseInt(cfg.columns, 10) || 3;
+        if (cols < 1) { cols = 1; }
+        if (cols > 4) { cols = 4; }
+
+        var colsBtns = '';
+        [1, 2, 3, 4].forEach(function(n) {
+            colsBtns += '<button type="button" class="bse-gallery-coltile'
+                + (n === cols ? ' active' : '') + '"'
+                + ' data-cols="' + n + '" title="' + n + ' column' + (n > 1 ? 's' : '') + '">'
+                + n + '</button>';
+        });
+
+        return ''
+            + '<div class="bse-gallery-editor">'
+                + '<div class="bse-gallery-toolbar">'
+                    + '<label class="small font-weight-bold mr-2 mb-0">Columns</label>'
+                    + '<div class="bse-gallery-coltiles">' + colsBtns + '</div>'
+                    + '<input type="hidden" id="bse_columns" value="' + cols + '">'
+                + '</div>'
+                + '<div class="bse-gallery-grid" id="bse_gallery_items"'
+                    + ' data-cols="' + cols + '">'
+                + '</div>'
+                + '<div class="bse-gallery-detail d-none">'
+                    + '<div class="bse-gd-thumb"></div>'
+                    + '<div class="bse-gd-fields">'
+                        + '<label class="small mb-1 d-block">Title</label>'
+                        + '<input type="text" class="form-control form-control-sm bse-gd-title mb-2">'
+                        + '<label class="small mb-1 d-block">Description</label>'
+                        + '<input type="text" class="form-control form-control-sm bse-gd-desc mb-2">'
+                        + '<div class="bse-gd-upload"></div>'
+                        + '<button type="button" class="btn btn-outline-danger btn-sm bse-gd-remove mt-2">'
+                            + '<i class="fa fa-trash"></i> Remove image'
+                        + '</button>'
+                    + '</div>'
+                + '</div>'
+            + '</div>';
+    }
+
+    /**
+     * Collect gallery items from the visual editor.
+     *
+     * Each tile stores its title / image_url / description in three hidden
+     * <input>s. We walk them in DOM order so drag-reorder is honoured.
+     *
+     * @param {jQuery} $panel The section edit panel.
+     * @returns {Array<{title: string, image_url: string, description: string}>}
      */
     function collectGalleryItems($panel) {
         var items = [];
-        $panel.find('.bse-gallery-item').each(function() {
-            var $item = $(this);
+        $panel.find('.bse-gallery-tile[data-tile="1"]').each(function() {
+            var $t = $(this);
             items.push({
-                title: $item.find('.bse-gi-title').val() || '',
-                image_url: $item.find('.bse-gi-image').val() || '',
-                description: $item.find('.bse-gi-desc').val() || ''
+                title: $t.find('.bse-gi-title').val() || '',
+                image_url: $t.find('.bse-gi-image').val() || '',
+                description: $t.find('.bse-gi-desc').val() || ''
             });
         });
         return items;
     }
 
     /**
-     * Add a gallery item row to the editor panel.
-     * @param {jQuery} $container
-     * @param {Object} item
+     * Append a visual gallery tile to the grid.
+     *
+     * @param {jQuery} $grid The grid container.
+     * @param {Object} item {title, image_url, description}.
+     * @param {jQuery} $panel Section edit panel.
      */
-    function addGalleryItemRow($container, item) {
+    function addGalleryTile($grid, item, $panel) {
         item = item || {};
-        var $row = $(
-            '<div class="bse-gallery-item card card-body p-2 mb-2">' +
-            '<div class="d-flex justify-content-between mb-1">' +
-            '<small class="text-muted">Gallery Item</small>' +
-            '<button type="button" class="btn btn-link btn-sm text-danger p-0 bse-gi-remove">' +
-            '<i class="fa fa-times"></i></button></div>' +
-            '<input type="text" class="form-control form-control-sm mb-1 bse-gi-title" placeholder="Title" value="' +
-            escHtml(item.title || '') + '">' +
-            '<div class="bse-gi-image-widget mb-1"></div>' +
-            '<input type="hidden" class="bse-gi-image" value="' + escHtml(item.image_url || '') + '">' +
-            '<input type="text" class="form-control form-control-sm bse-gi-desc" placeholder="Description" value="' +
-            escHtml(item.description || '') + '">' +
-            '</div>'
-        );
-        $row.find('.bse-gi-remove').on('click', function() {
-            $row.remove();
+        var html = '<div class="bse-gallery-tile" data-tile="1" draggable="true">'
+            + '<div class="bse-gallery-tile-thumb">'
+                + (item.image_url
+                    ? '<img alt="" src="' + escHtml(item.image_url) + '">'
+                    : '<i class="fa fa-image bse-gallery-tile-empty"></i>')
+            + '</div>'
+            + '<div class="bse-gallery-tile-caption">'
+                + '<span class="bse-gallery-tile-title">'
+                + (item.title ? escHtml(item.title) : '<em class="text-muted">Untitled</em>')
+                + '</span>'
+            + '</div>'
+            + '<button type="button" class="bse-gallery-tile-remove"'
+                + ' title="Remove" aria-label="Remove"><i class="fa fa-times"></i></button>'
+            + '<input type="hidden" class="bse-gi-title" value="' + escHtml(item.title || '') + '">'
+            + '<input type="hidden" class="bse-gi-image" value="' + escHtml(item.image_url || '') + '">'
+            + '<input type="hidden" class="bse-gi-desc" value="' + escHtml(item.description || '') + '">'
+            + '</div>';
+        var $tile = $(html);
+        $tile.on('click', function(ev) {
+            // Don't open the detail panel when the user is clicking the remove button.
+            if ($(ev.target).closest('.bse-gallery-tile-remove').length) {
+                return;
+            }
+            selectGalleryTile($panel, $tile);
         });
-        $container.append($row);
+        $tile.find('.bse-gallery-tile-remove').on('click', function() {
+            if ($panel.data('selected-tile') && $panel.data('selected-tile').is($tile)) {
+                $panel.find('.bse-gallery-detail').addClass('d-none');
+                $panel.data('selected-tile', null);
+            }
+            $tile.remove();
+        });
+        $grid.append($tile);
+    }
 
+    /**
+     * Re-render the lightweight tile face (thumbnail image, title caption)
+     * from the hidden inputs. Called whenever the detail panel mutates a tile.
+     *
+     * @param {jQuery} $tile
+     */
+    function refreshGalleryTileFace($tile) {
+        var img = $tile.find('.bse-gi-image').val();
+        var title = $tile.find('.bse-gi-title').val();
+        var $thumb = $tile.find('.bse-gallery-tile-thumb');
+        if (img) {
+            $thumb.html('<img alt="" src="' + escHtml(img) + '">');
+        } else {
+            $thumb.html('<i class="fa fa-image bse-gallery-tile-empty"></i>');
+        }
+        $tile.find('.bse-gallery-tile-title').html(
+            title ? escHtml(title) : '<em class="text-muted">Untitled</em>'
+        );
+    }
+
+    /**
+     * Mark a tile as selected and populate the inline detail panel with its
+     * current values. The Upload widget is rebuilt against the selected tile's
+     * hidden image input so picks land in the right place.
+     *
+     * @param {jQuery} $panel The section edit panel.
+     * @param {jQuery} $tile The tile to focus.
+     */
+    function selectGalleryTile($panel, $tile) {
+        $panel.find('.bse-gallery-tile').removeClass('active');
+        $tile.addClass('active');
+        $panel.data('selected-tile', $tile);
+
+        var $detail = $panel.find('.bse-gallery-detail').removeClass('d-none');
+        var $title = $detail.find('.bse-gd-title');
+        var $desc  = $detail.find('.bse-gd-desc');
+
+        $title.val($tile.find('.bse-gi-title').val() || '');
+        $desc.val($tile.find('.bse-gi-desc').val() || '');
+
+        $title.off('.bsegd').on('input.bsegd', function() {
+            $tile.find('.bse-gi-title').val($(this).val());
+            refreshGalleryTileFace($tile);
+        });
+        $desc.off('.bsegd').on('input.bsegd', function() {
+            $tile.find('.bse-gi-desc').val($(this).val());
+        });
+        $detail.find('.bse-gd-remove').off('.bsegd').on('click.bsegd', function() {
+            $tile.find('.bse-gi-image').val('');
+            refreshGalleryTileFace($tile);
+            rebuildGalleryUploadWidget($panel, $tile);
+        });
+
+        var $thumb = $detail.find('.bse-gd-thumb');
+        var img = $tile.find('.bse-gi-image').val();
+        $thumb.html(img
+            ? '<img alt="" src="' + escHtml(img) + '">'
+            : '<div class="bse-gd-thumb-empty"><i class="fa fa-image"></i></div>');
+
+        rebuildGalleryUploadWidget($panel, $tile);
+    }
+
+    /**
+     * (Re)mount the file-upload widget inside the detail panel, bound to the
+     * selected tile's hidden image input. We rebuild on each selection so the
+     * widget always targets the right tile.
+     *
+     * @param {jQuery} $panel
+     * @param {jQuery} $tile
+     */
+    function rebuildGalleryUploadWidget($panel, $tile) {
         var sesskey = (window.M && window.M.cfg && window.M.cfg.sesskey) || '';
-        var $hidden = $row.find('.bse-gi-image');
+        var $hidden = $tile.find('.bse-gi-image');
+        var $slot = $panel.find('.bse-gd-upload').empty();
         Upload.createWidget(
-            $row.find('.bse-gi-image-widget')[0],
+            $slot[0],
             pageId,
             sesskey,
             $hidden.val() || null,
             function(url) {
                 $hidden.val(url || '');
+                refreshGalleryTileFace($tile);
+                var $thumb = $panel.find('.bse-gd-thumb');
+                $thumb.html(url
+                    ? '<img alt="" src="' + escHtml(url) + '">'
+                    : '<div class="bse-gd-thumb-empty"><i class="fa fa-image"></i></div>');
             }
         );
+    }
+
+    /**
+     * Wire up the gallery editor: column-count tiles, initial tiles, drag-to-
+     * reorder, "+" add tile, and the per-tile selection handlers.
+     *
+     * @param {jQuery} $panel The section edit panel.
+     * @param {Object} cfg Initial configdata.
+     */
+    function initGalleryEditor($panel, cfg) {
+        var $grid = $panel.find('#bse_gallery_items');
+
+        // Render existing tiles.
+        (cfg.items || []).forEach(function(item) {
+            addGalleryTile($grid, item, $panel);
+        });
+
+        // Trailing "+" add tile (not a data tile — collectGalleryItems ignores it).
+        var $addTile = $(
+            '<div class="bse-gallery-tile bse-gallery-tile-add" data-tile="0"'
+            + ' title="Add image" aria-label="Add image">'
+            + '<i class="fa fa-plus"></i><span class="small mt-1">Add</span>'
+            + '</div>'
+        );
+        $addTile.on('click', function() {
+            addGalleryTile($grid, {}, $panel);
+            // Move the "+" tile to the end so it always trails the data tiles.
+            $addTile.appendTo($grid);
+            // Select the new tile so the detail panel + upload widget are
+            // ready immediately.
+            var $last = $grid.find('.bse-gallery-tile[data-tile="1"]').last();
+            selectGalleryTile($panel, $last);
+        });
+        $grid.append($addTile);
+
+        // Column-count buttons.
+        $panel.find('.bse-gallery-coltile').on('click', function() {
+            var n = parseInt($(this).attr('data-cols'), 10) || 3;
+            $panel.find('.bse-gallery-coltile').removeClass('active');
+            $(this).addClass('active');
+            $panel.find('#bse_columns').val(n);
+            $grid.attr('data-cols', n);
+        });
+
+        // Drag-to-reorder data tiles.
+        $grid.on('dragstart', '.bse-gallery-tile[data-tile="1"]', function(ev) {
+            var oe = ev.originalEvent || ev;
+            $(this).addClass('bse-gallery-tile-dragging');
+            if (oe.dataTransfer) {
+                oe.dataTransfer.effectAllowed = 'move';
+                oe.dataTransfer.setData('text/plain', 'tile');
+            }
+        });
+        $grid.on('dragend', '.bse-gallery-tile', function() {
+            $(this).removeClass('bse-gallery-tile-dragging');
+            // Re-pin the add tile to the end after a reorder.
+            $addTile.appendTo($grid);
+        });
+        $grid.on('dragover', '.bse-gallery-tile[data-tile="1"]', function(ev) {
+            ev.preventDefault();
+            var $dragging = $grid.find('.bse-gallery-tile-dragging');
+            if (!$dragging.length || $dragging[0] === this) {
+                return;
+            }
+            var rect = this.getBoundingClientRect();
+            var midX = rect.left + rect.width / 2;
+            var clientX = (ev.originalEvent || ev).clientX;
+            if (clientX > midX) {
+                $(this).after($dragging);
+            } else {
+                $(this).before($dragging);
+            }
+        });
     }
 
     /**
@@ -1361,27 +2115,17 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
         // Attach TinyMCE to any rich-text textareas.
         initRichFields($panel);
 
+        // Wire HTML syntax highlighting on any code editor textareas.
+        initCodeEditors($panel);
+
         // Populate gallery items if gallery type.
         if (stype === 'gallery') {
-            var $container = $panel.find('#bse_gallery_items');
-            var items = cfg.items || [];
-            items.forEach(function(item) {
-                addGalleryItemRow($container, item);
-            });
-            $panel.find('.bse-gallery-add').on('click', function() {
-                addGalleryItemRow($container, {});
-            });
+            initGalleryEditor($panel, cfg);
         }
 
         // Populate repeating-row widgets for the academic section types.
         if (stype === 'chart') {
-            var $chartContainer = $panel.find('#bse_chart_items');
-            (cfg.items || []).forEach(function(item) {
-                addChartItemRow($chartContainer, item);
-            });
-            $panel.find('.bse-chart-add').on('click', function() {
-                addChartItemRow($chartContainer, {});
-            });
+            initChartEditor($panel, cfg);
         }
         if (stype === 'cloud') {
             var $cloudContainer = $panel.find('#bse_cloud_items');
@@ -1700,6 +2444,12 @@ function($, Ajax, Notification, Str, InlineEditor, Upload, TinyLoader) {
 
         $h2.on('click', enterEdit);
         $h2.on('keydown', function(ev) {
+            // Only respond when the focus is on the heading itself. Without this
+            // guard, the bubble from a keydown inside the inline input would
+            // hit preventDefault — eating spaces before the user can type them.
+            if (ev.target !== this) {
+                return;
+            }
             if (ev.key === 'Enter' || ev.key === ' ') {
                 ev.preventDefault();
                 enterEdit();

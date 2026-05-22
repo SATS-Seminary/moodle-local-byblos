@@ -299,12 +299,16 @@ class section_renderer {
         } else {
             foreach ($skills as $sk) {
                 $name  = s($sk['name'] ?? '');
-                $level = max(0, min(100, (int) ($sk['level'] ?? 0)));
+                $level = renderer::clamp_skill_level((int) ($sk['level'] ?? 1));
+                // Map 1..5 onto a 20/40/60/80/100 percent bar fill.
+                $pct = $level * 20;
+                $levellabel = s(get_string('skill_level_' . $level, 'local_byblos'));
                 $html .= '<div class="mb-2">';
                 $html .= '<div class="d-flex justify-content-between mb-1" style="font-size:0.85rem !important;">';
-                $html .= '<span>' . $name . '</span><span>' . $level . '%</span></div>';
+                $html .= '<span>' . $name . '</span><span class="byblos-skill-level-name">'
+                    . $levellabel . '</span></div>';
                 $html .= '<div class="progress" style="height:0.6rem !important;">';
-                $html .= '<div class="progress-bar" style="width:' . $level . '% !important; background-color:'
+                $html .= '<div class="progress-bar" style="width:' . $pct . '% !important; background-color:'
                     . $barcolor . ' !important;"></div></div></div>';
             }
         }
@@ -550,6 +554,14 @@ class section_renderer {
             return '<div class="eportfolio-section-custom text-muted">'
                 . '<em>Empty custom section. Click Edit to add HTML content.</em></div>';
         }
-        return '<div class="eportfolio-section-custom">' . $content . '</div>';
+        // Same sanitisation as the public renderer — see renderer.php for the
+        // threat model the HTMLPurifier policy is closing.
+        $clean = format_text($content, FORMAT_HTML, [
+            'noclean' => false,
+            'context' => \context_system::instance(),
+            'allowid' => false,
+            'overflowdiv' => false,
+        ]);
+        return '<div class="eportfolio-section-custom">' . $clean . '</div>';
     }
 }

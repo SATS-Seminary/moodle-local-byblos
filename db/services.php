@@ -212,4 +212,24 @@ $functions = [
         'ajax'         => true,
         'capabilities' => 'local/byblos:use',
     ],
+
+    // Chart editor live preview.
+    'local_byblos_render_chart_preview' => [
+        'classname'    => \local_byblos\external\chart_preview_external::class,
+        'methodname'   => 'render_chart_preview',
+        'description'  => 'Render a chart section from raw configdata JSON (used by the live-preview pane in the editor).',
+        'type'         => 'read',
+        'ajax'         => true,
+        'capabilities' => 'local/byblos:createpage',
+    ],
+
+    // Announcement-turnstile link generator.
+    'local_byblos_list_postable_courses' => [
+        'classname'    => \local_byblos\external\announce_external::class,
+        'methodname'   => 'list_postable_courses',
+        'description'  => 'List courses where the current user can post announcements (for the Get announcement link picker).',
+        'type'         => 'read',
+        'ajax'         => true,
+        'capabilities' => 'local/byblos:use',
+    ],
 ];

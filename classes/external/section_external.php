@@ -130,6 +130,18 @@ class section_external extends external_api {
             throw new \moodle_exception('error:invalidsectiontype', 'local_byblos');
         }
 
+        // The custom-HTML section type carries elevated XSS risk because the
+        // body becomes part of a (potentially public-shared) portfolio page.
+        // Gate it behind a dedicated capability so unprivileged students can't
+        // smuggle raw markup into the site even though HTMLPurifier still
+        // sanitises it at render time.
+        if (
+            $sectiontype === 'custom'
+            && !has_capability('local/byblos:editcustomhtml', \context_system::instance())
+        ) {
+            throw new \moodle_exception('error:nopermission', 'local_byblos');
+        }
+
         $page = self::require_page_owner($pageid);
 
         // Shift existing sections at or after the insert position.
@@ -420,7 +432,7 @@ class section_external extends external_api {
             'text'        => '{"heading":"Section Heading","body":"<p>Add your content here...</p>"}',
             'text_image'  => '{"heading":"","body":"<p>Describe your work here...</p>","image_url":"","image_alt":"","reversed":false}',
             'gallery'     => '{"columns":3,"items":[]}',
-            'skills'      => '{"heading":"Skills","skills":[{"name":"Skill 1","level":75},{"name":"Skill 2","level":60}]}',
+            'skills'      => '{"heading":"Skills","skills":[{"name":"Skill 1","level":3},{"name":"Skill 2","level":2}]}',
             'timeline'    => '{"heading":"Timeline","items":[{"date":"2024","title":"Event Title","description":"Description of the event"}]}',
             'badges'      => '{"heading":"My Badges","show":true}',
             'completions' => '{"heading":"Completed Courses","show":true}',
@@ -428,10 +440,10 @@ class section_external extends external_api {
             'cta'         => '{"heading":"Get in Touch","body":"I am open to opportunities and collaboration.","button_text":"Contact Me","button_url":"#","bg_color":"#0d6efd"}',
             'divider'     => '{"style":"line","spacing":"2rem"}',
             'custom'      => '{}',
-            'chart'       => '{"heading":"Chart","type":"bar","color":"#0d6efd","items":[{"label":"A","value":40},{"label":"B","value":72},{"label":"C","value":55}]}',
+            'chart'       => '{"heading":"Chart","type":"bar","color":"#0d6efd","orientation":"horizontal","sort":"input","series":[],"x_label":"","y_label":"","unit_suffix":"","caption":"","show_values":true,"items":[{"label":"A","value":40},{"label":"B","value":72},{"label":"C","value":55}]}',
             'cloud'       => '{"heading":"Key terms","color":"#0d6efd","items":[{"text":"reflection","weight":8},{"text":"evidence","weight":6},{"text":"learning","weight":9}]}',
             'quote'       => '{"body":"<p>Add a meaningful quotation here.</p>","attribution":"","source":""}',
-            'stats'       => '{"heading":"At a glance","items":[{"number":"42","label":"Sessions","description":""},{"number":"6 mo","label":"Project duration","description":""},{"number":"98%","label":"Satisfaction","description":""}]}',
+            'stats'       => '{"heading":"At a glance","items":[{"number":"0","label":"Replace with your own count","description":"Say what the number measures (e.g. essays written, hours volunteered, books read)"},{"number":"0","label":"Replace with your own count","description":""},{"number":"0","label":"Replace with your own count","description":""}]}',
             'citations'   => '{"heading":"References","style":"apa","items":[]}',
             'files'       => '{"heading":"Files","display":"list","items":[]}',
             'youtube'     => '{"heading":"","url":"","description":"","start":0,"alignment":"full","body":""}',

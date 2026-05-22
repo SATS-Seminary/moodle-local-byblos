@@ -119,6 +119,23 @@ if ($shownav) {
     }
 }
 
+// Can the current viewer post announcements in at least one course? If so we
+// surface the "Get announcement link" picker. (Cheap probe — the full list is
+// fetched lazily by the AMD module when the popover opens.)
+$canannounce = false;
+if ($isowner && !$preview) {
+    foreach (enrol_get_my_courses(['id']) as $c) {
+        if ((int) $c->id === SITEID) {
+            continue;
+        }
+        $ccontext = context_course::instance((int) $c->id, IGNORE_MISSING);
+        if ($ccontext && has_capability('moodle/course:update', $ccontext)) {
+            $canannounce = true;
+            break;
+        }
+    }
+}
+
 $data = [
     'page'        => [
         'id'          => $pagerecord->id,
@@ -134,6 +151,7 @@ $data = [
     'rendered_content' => $renderedcontent,
     'has_sections' => !empty($hassections),
     'isowner'     => $isowner && !$preview,
+    'can_announce' => $canannounce,
     'ispreview'   => $preview,
     'previewurl'  => (new moodle_url('/local/byblos/page.php', ['id' => $id, 'preview' => 1]))->out(false),
     'editurl'     => (new moodle_url('/local/byblos/editpage.php', ['id' => $id]))->out(false),
@@ -144,6 +162,13 @@ $data = [
     'dashurl'     => (new moodle_url('/local/byblos/view.php'))->out(false),
     'sesskey'     => sesskey(),
 ];
+
+if ($canannounce) {
+    $PAGE->requires->js_call_amd('local_byblos/announce_link', 'init', [[
+        'pageid'  => (int) $pagerecord->id,
+        'wwwroot' => $CFG->wwwroot,
+    ]]);
+}
 
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('local_byblos/page_view', $data);

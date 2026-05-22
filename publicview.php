@@ -33,6 +33,7 @@ use local_byblos\share;
 use local_byblos\page;
 use local_byblos\collection;
 use local_byblos\section;
+use local_byblos\renderer;
 
 $token = required_param('token', PARAM_ALPHANUM);
 
@@ -62,14 +63,19 @@ if (!empty($sharerecord->pageid)) {
 
     $owner = $DB->get_record('user', ['id' => $portfoliopage->userid], 'id, firstname, lastname');
 
-    // Load sections for the page.
-    $sections = section::list_for_page($portfoliopage->id);
+    // Render each section through the public renderer so configdata-driven
+    // section types (hero, text, gallery, chart, etc.) produce real HTML —
+    // not just the legacy `content` column, which is empty for most types.
+    $sections = section::get_by_page($portfoliopage->id);
+    $themekey = $portfoliopage->themekey ?? 'clean';
+    $ownerid  = (int) $portfoliopage->userid;
+    $hostpageid = (int) $portfoliopage->id;
     $sectiondata = [];
     foreach ($sections as $s) {
         $sectiondata[] = [
             'sectiontype' => $s->sectiontype,
-            'content'     => format_text($s->content, FORMAT_HTML),
-            'sortorder'   => $s->sortorder,
+            'content'     => renderer::render_section($s, $themekey, $ownerid, $hostpageid),
+            'sortorder'   => (int) $s->sortorder,
         ];
     }
 
@@ -78,6 +84,7 @@ if (!empty($sharerecord->pageid)) {
     $templatedata = [
         'is_page'       => true,
         'is_collection' => false,
+        'themekey'      => $themekey,
         'title'         => $portfoliopage->title,
         'description'   => format_text($portfoliopage->description ?? '', FORMAT_HTML),
         'owner'         => $owner ? fullname($owner) : '',
@@ -93,17 +100,21 @@ if (!empty($sharerecord->pageid)) {
 
     $owner = $DB->get_record('user', ['id' => $coll->userid], 'id, firstname, lastname');
 
-    // Load pages in the collection.
+    // Render every page in the collection through the public renderer so
+    // configdata-backed section types produce real HTML for each member page.
     $collpages = collection::get_pages($coll->id);
     $pagedata = [];
     foreach ($collpages as $cp) {
-        $sections = section::list_for_page($cp->id);
+        $sections = section::get_by_page((int) $cp->id);
+        $themekey = $cp->themekey ?? 'clean';
+        $ownerid  = (int) $cp->userid;
+        $hostpageid = (int) $cp->id;
         $sectiondata = [];
         foreach ($sections as $s) {
             $sectiondata[] = [
                 'sectiontype' => $s->sectiontype,
-                'content'     => format_text($s->content, FORMAT_HTML),
-                'sortorder'   => $s->sortorder,
+                'content'     => renderer::render_section($s, $themekey, $ownerid, $hostpageid),
+                'sortorder'   => (int) $s->sortorder,
             ];
         }
         $pagedata[] = [

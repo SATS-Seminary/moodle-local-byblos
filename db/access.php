@@ -100,4 +100,17 @@ $capabilities = [
         ],
         'riskbitmask' => RISK_PERSONAL | RISK_DATALOSS,
     ],
+
+    // Insert custom HTML section. Output is still passed through HTMLPurifier,
+    // but raw markup is a higher-risk surface (XSS / phishing payloads on
+    // public-share pages), so it is gated to staff archetypes by default.
+    'local/byblos:editcustomhtml' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'riskbitmask' => RISK_XSS,
+    ],
 ];
